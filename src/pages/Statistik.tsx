@@ -1,23 +1,35 @@
-
 import { useState, useEffect, useRef } from "react"
 import Chart from "chart.js/auto"
+import api from "../lib/axios"
+import { useAuth } from "../hooks/useAuth"
 
-const allData = [
-    { date: "2025-03-01", income: 450000, trx: 8 },
-    { date: "2025-03-02", income: 720000, trx: 12 },
-    { date: "2025-03-03", income: 310000, trx: 6 },
-    { date: "2025-03-04", income: 890000, trx: 15 },
-    { date: "2025-03-05", income: 560000, trx: 9 },
-    { date: "2025-03-06", income: 230000, trx: 4 },
-    { date: "2025-03-07", income: 680000, trx: 11 },
-    { date: "2025-03-08", income: 940000, trx: 16 },
-    { date: "2025-03-09", income: 410000, trx: 7 },
-    { date: "2025-03-10", income: 770000, trx: 13 },
-    { date: "2025-03-11", income: 820000, trx: 14 },
-    { date: "2025-03-12", income: 390000, trx: 7 },
-    { date: "2025-03-13", income: 610000, trx: 10 },
-    { date: "2025-03-14", income: 1020000, trx: 18 },
-]
+interface ChartPoint {
+    date: string
+    revenue: number
+    total_transactions: number
+}
+
+interface DailySummary {
+    total_transactions: number
+    total_revenue: number
+    total_collected: number
+    by_payment_method: {
+        cash: number
+        transfer: number
+        qris: number
+    }
+}
+
+interface TopProduct {
+    product_name: string
+    total_quantity: number
+    total_revenue: number
+}
+
+interface Category {
+    id: number
+    name: string
+}
 
 const fmt = (n: number) => "Rp " + n.toLocaleString("id-ID")
 
@@ -27,33 +39,105 @@ const pct = (n: number, base: number) => {
     return (val >= 0 ? "+" : "") + val + "%"
 }
 
+const getLocalDate = (date: Date): string => {
+    const offset = date.getTimezoneOffset()
+    const local = new Date(date.getTime() - offset * 60 * 1000)
+    return local.toISOString().split("T")[0]
+}
+
+const today = getLocalDate(new Date())
+const sevenDaysAgo = getLocalDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+
 function Statistik() {
-    const today = allData[allData.length - 1]
+    
+    const { isAdmin } = useAuth()
 
-    const [fromDate, setFromDate] = useState(allData[0].date)
-    const [toDate, setToDate] = useState(allData[allData.length - 1].date)
+    // Redirect kalau bukan admin
+    if (!isAdmin) {
+        window.location.href = "/transaksi"
+        return null
+    }
 
-    const [filtered, setFiltered] = useState(allData)
+    const [fromDate, setFromDate] = useState(sevenDaysAgo)
+    const [toDate, setToDate] = useState(today)
+    const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
+    const [categories, setCategories] = useState<Category[]>([])
+
+    const [chartData, setChartData] = useState<ChartPoint[]>([])
+    const [todaySummary, setTodaySummary] = useState<DailySummary | null>(null)
+    const [yesterdaySummary, setYesterdaySummary] = useState<DailySummary | null>(null)
+    const [topProducts, setTopProducts] = useState<TopProduct[]>([])
+
+    const [loadingChart, setLoadingChart] = useState(false)
+    const [loadingCards, setLoadingCards] = useState(true)
 
     const chartRef = useRef<HTMLCanvasElement>(null)
     const chartInstance = useRef<Chart | null>(null)
 
-    const totalIncome = filtered.reduce((a, d) => a + d.income, 0)
-    const totalTrx = filtered.reduce((a, d) => a + d.trx, 0)
-    const avgPerTrx = totalTrx > 0 ? Math.round(totalIncome / totalTrx) : 0
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split("T")[0]
 
-    const prev = allData.filter((d) => d.date < fromDate)
-    const prevIncome = prev.reduce((a, d) => a + d.income, 0)
-    const prevTrx = prev.reduce((a, d) => a + d.trx, 0)
-    const prevAvg = prevTrx > 0 ? Math.round(prevIncome / prevTrx) : 0
+    // Fetch kategori untuk dropdown filter
+    useEffect(() => {
+        api.get("/categories", { params: { all: true } })
+            .then(res => setCategories(res.data.data))
+            .catch(err => console.error(err))
+    }, [])
 
-    const handleApply = () => {
-        const result = allData.filter((d) => d.date >= fromDate && d.date <= toDate)
-        setFiltered(result)
+    // Fetch kartu hari ini & kemarin
+    useEffect(() => {
+        setLoadingCards(true)
+        Promise.all([
+            api.get("/reports/daily", { params: { date: today } }),
+            api.get("/reports/daily", { params: { date: yesterday } }),
+        ])
+            .then(([todayRes, yesterdayRes]) => {
+                setTodaySummary(todayRes.data.data.summary)
+                setYesterdaySummary(yesterdayRes.data.data.summary)
+            })
+            .catch(err => console.error(err))
+            .finally(() => setLoadingCards(false))
+    }, [])
+
+    // Fetch chart + top products
+    const fetchChartData = () => {
+        setLoadingChart(true)
+        Promise.all([
+            api.get("/reports/chart", {
+                params: {
+                    start_date: fromDate,
+                    end_date: toDate,
+                    ...(selectedCategory ? { category_id: selectedCategory } : {}),
+                },
+            }),
+            api.get("/reports/top-products", {
+                params: {
+                    start_date: fromDate,
+                    end_date: toDate,
+                    limit: 5,
+                },
+            }),
+        ])
+            .then(([chartRes, topRes]) => {
+                setChartData(chartRes.data.data.chart)
+                setTopProducts(topRes.data.data)
+            })
+            .catch(err => console.error(err))
+            .finally(() => setLoadingChart(false))
     }
 
+    // Fetch chart saat pertama kali load
     useEffect(() => {
-        if (!chartRef.current) return
+        fetchChartData()
+    }, [])
+
+    // Kalkulasi summary dari chart data
+    const totalRevenue = chartData.reduce((a, d) => a + d.revenue, 0)
+    const totalTrx = chartData.reduce((a, d) => a + d.total_transactions, 0)
+    const avgPerTrx = totalTrx > 0 ? Math.round(totalRevenue / totalTrx) : 0
+
+    // Render chart
+    useEffect(() => {
+        if (!chartRef.current || chartData.length === 0) return
 
         if (chartInstance.current) {
             chartInstance.current.destroy()
@@ -62,11 +146,11 @@ function Statistik() {
         chartInstance.current = new Chart(chartRef.current, {
             type: "line",
             data: {
-                labels: filtered.map((d) => d.date.slice(5)),
+                labels: chartData.map((d) => d.date.slice(5)),
                 datasets: [
                     {
                         label: "Pendapatan",
-                        data: filtered.map((d) => d.income),
+                        data: chartData.map((d) => d.revenue),
                         borderColor: "#2563eb",
                         backgroundColor: "rgba(37,99,235,0.08)",
                         tension: 0.35,
@@ -76,7 +160,7 @@ function Statistik() {
                     },
                     {
                         label: "Transaksi (×50k)",
-                        data: filtered.map((d) => d.trx * 50000),
+                        data: chartData.map((d) => d.total_transactions * 50000),
                         borderColor: "#f59e0b",
                         backgroundColor: "rgba(245,158,11,0.07)",
                         tension: 0.35,
@@ -107,53 +191,80 @@ function Statistik() {
             },
         })
 
-        return () => {
-            chartInstance.current?.destroy()
-        }
-    }, [filtered])
+        return () => { chartInstance.current?.destroy() }
+    }, [chartData])
 
     const Badge = ({ value, base }: { value: number; base: number }) => {
         const text = pct(value, base)
         const isNeg = value < base
         return (
-            <span
-                className={`inline-block text-xs px-2 py-0.5 rounded mt-1 font-medium ${isNeg
-                    ? "bg-red-50 text-red-600"
-                    : "bg-green-50 text-green-600"
-                    }`}
-            >
+            <span className={`inline-block text-xs px-2 py-0.5 rounded mt-1 font-medium ${isNeg ? "bg-red-50 text-red-600" : "bg-green-50 text-green-600"}`}>
                 {text}
             </span>
         )
     }
 
+    useEffect(() => {
+        // Lihat apa yang dikirim ke API
+        console.log("Fetching chart:", { fromDate, toDate, selectedCategory })
+
+        // Lihat raw response
+        api.get("/reports/chart", {
+            params: { start_date: fromDate, end_date: toDate }
+        }).then(res => console.log("Chart response:", res.data))
+
+        api.get("/reports/daily", {
+            params: { date: today }
+        }).then(res => console.log("Daily response:", res.data))
+    }, [])
+
     return (
         <div>
             <h2 className="text-3xl font-bold mb-6">Statistik</h2>
 
-            {/* Kartu ringkasan hari ini */}
+            {/* Kartu hari ini */}
             <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Pendapatan Hari Ini</p>
-                    <p className="text-2xl font-semibold text-gray-800">{fmt(today.income)}</p>
+                    <p className="text-2xl font-semibold text-gray-800">
+                        {loadingCards ? "—" : fmt(todaySummary?.total_revenue ?? 0)}
+                    </p>
+                    {!loadingCards && todaySummary && yesterdaySummary && (
+                        <Badge value={todaySummary.total_revenue} base={yesterdaySummary.total_revenue} />
+                    )}
                     <p className="text-xs text-gray-400 mt-1">dibanding kemarin</p>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Total Transaksi Hari Ini</p>
-                    <p className="text-2xl font-semibold text-gray-800">{today.trx} transaksi</p>
-                    <p className="text-xs text-gray-400 mt-1">sejak pukul 00.00</p>
+                    <p className="text-2xl font-semibold text-gray-800">
+                        {loadingCards ? "—" : `${todaySummary?.total_transactions ?? 0} transaksi`}
+                    </p>
+                    {!loadingCards && todaySummary && yesterdaySummary && (
+                        <Badge value={todaySummary.total_transactions} base={yesterdaySummary.total_transactions} />
+                    )}
+                    <p className="text-xs text-gray-400 mt-1">dibanding kemarin</p>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                    <p className="text-xs text-gray-500 mb-1">Produk Terjual Hari Ini</p>
-                    <p className="text-2xl font-semibold text-gray-800">
-                        {Math.round(today.trx * 2.3)} item
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">dari semua kategori</p>
+                    <p className="text-xs text-gray-500 mb-1">Pendapatan per Metode</p>
+                    {loadingCards ? (
+                        <p className="text-2xl font-semibold text-gray-800">—</p>
+                    ) : (
+                        <div className="mt-1 space-y-1">
+                            {(["cash", "transfer", "qris"] as const).map(method => (
+                                <div key={method} className="flex justify-between text-sm">
+                                    <span className="text-gray-500 uppercase text-xs">{method}</span>
+                                    <span className="font-medium text-gray-700">
+                                        {fmt(todaySummary?.by_payment_method[method] ?? 0)}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Filter tanggal */}
-            <div className="flex items-end gap-4 mb-6">
+            {/* Filter tanggal + kategori */}
+            <div className="flex items-end gap-4 mb-6 flex-wrap">
                 <div className="flex flex-col gap-1">
                     <label className="text-xs text-gray-500">Dari Tanggal</label>
                     <input
@@ -172,11 +283,25 @@ function Statistik() {
                         className="border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700 outline-none focus:border-gray-400"
                     />
                 </div>
+                <div className="flex flex-col gap-1">
+                    <label className="text-xs text-gray-500">Kategori</label>
+                    <select
+                        value={selectedCategory ?? ""}
+                        onChange={(e) => setSelectedCategory(e.target.value ? Number(e.target.value) : null)}
+                        className="border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700 outline-none focus:border-gray-400"
+                    >
+                        <option value="">Semua Kategori</option>
+                        {categories.map(cat => (
+                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                        ))}
+                    </select>
+                </div>
                 <button
-                    onClick={handleApply}
-                    className="bg-gray-800 text-white px-5 py-2 rounded-md text-sm hover:bg-gray-900 active:scale-95 transition cursor-pointer"
+                    onClick={fetchChartData}
+                    disabled={loadingChart}
+                    className="bg-gray-800 text-white px-5 py-2 rounded-md text-sm hover:bg-gray-900 active:scale-95 transition cursor-pointer disabled:bg-gray-400"
                 >
-                    Terapkan
+                    {loadingChart ? "Memuat..." : "Terapkan"}
                 </button>
             </div>
 
@@ -184,23 +309,26 @@ function Statistik() {
             <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Total Pendapatan</p>
-                    <p className="text-xl font-semibold text-gray-800">{fmt(totalIncome)}</p>
-                    <Badge value={totalIncome} base={prevIncome} />
+                    <p className="text-xl font-semibold text-gray-800">
+                        {loadingChart ? "—" : fmt(totalRevenue)}
+                    </p>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Total Transaksi</p>
-                    <p className="text-xl font-semibold text-gray-800">{totalTrx} transaksi</p>
-                    <Badge value={totalTrx} base={prevTrx} />
+                    <p className="text-xl font-semibold text-gray-800">
+                        {loadingChart ? "—" : `${totalTrx} transaksi`}
+                    </p>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Rata-rata per Transaksi</p>
-                    <p className="text-xl font-semibold text-gray-800">{fmt(avgPerTrx)}</p>
-                    <Badge value={avgPerTrx} base={prevAvg} />
+                    <p className="text-xl font-semibold text-gray-800">
+                        {loadingChart ? "—" : fmt(avgPerTrx)}
+                    </p>
                 </div>
             </div>
 
             {/* Grafik */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-base font-semibold text-gray-800">Grafik Pendapatan</h3>
                     <div className="flex gap-4 text-xs text-gray-500">
@@ -215,8 +343,45 @@ function Statistik() {
                     </div>
                 </div>
                 <div className="relative w-full h-60">
-                    <canvas ref={chartRef}></canvas>
+                    {loadingChart ? (
+                        <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-400">
+                            Memuat grafik...
+                        </div>
+                    ) : chartData.length === 0 ? (
+                        <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-400">
+                            Tidak ada data untuk rentang ini.
+                        </div>
+                    ) : (
+                        <canvas ref={chartRef}></canvas>
+                    )}
                 </div>
+            </div>
+
+            {/* Top 5 Produk Terlaris */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <h3 className="text-base font-semibold text-gray-800 mb-4">
+                    Top 5 Produk Terlaris
+                </h3>
+                {loadingChart ? (
+                    <p className="text-sm text-gray-400">Memuat...</p>
+                ) : topProducts.length === 0 ? (
+                    <p className="text-sm text-gray-400">Tidak ada data.</p>
+                ) : (
+                    <div className="space-y-3">
+                        {topProducts.map((product, i) => (
+                            <div key={i} className="flex items-center gap-3">
+                                <span className="text-xs font-bold text-gray-400 w-4">{i + 1}</span>
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-gray-800">{product.product_name}</p>
+                                    <p className="text-xs text-gray-400">{product.total_quantity} terjual</p>
+                                </div>
+                                <span className="text-sm font-semibold text-gray-700">
+                                    {fmt(product.total_revenue)}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     )

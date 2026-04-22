@@ -1,227 +1,567 @@
-import { useState } from "react"
+import React, { useState, useEffect } from "react"
+import api from "../lib/axios"
+import { useAuth } from "../hooks/useAuth"
 
-type Product = {
+interface User {
     id: number
     name: string
-    kategori: string
-    price: number
-    stock: number
+    email: string
+    role: "admin" | "cashier"
+    created_at: string
 }
 
-type CartItem = Product & { qty: number }
+interface UserForm {
+    name: string
+    email: string
+    password: string
+    password_confirmation: string
+    role: "admin" | "cashier"
+}
 
-const initialProducts: Product[] = [
-    { id: 1, name: "Beras", kategori: "Makanan", price: 12000, stock: 20 },
-    { id: 2, name: "Gula", kategori: "Makanan", price: 14000, stock: 15 },
-    { id: 3, name: "Minyak", kategori: "Makanan", price: 18000, stock: 10 },
-    { id: 4, name: "Teh Botol", kategori: "Minuman", price: 5000, stock: 30 },
-    { id: 5, name: "Air Mineral", kategori: "Minuman", price: 4000, stock: 50 },
-]
+interface ResetForm {
+    password: string
+    password_confirmation: string
+}
 
-const fmt = (n: number) => "Rp " + n.toLocaleString("id-ID")
+const emptyForm: UserForm = {
+    name:                  "",
+    email:                 "",
+    password:              "",
+    password_confirmation: "",
+    role:                  "cashier",
+}
 
-function Kasir() {
-    const [products] = useState<Product[]>(initialProducts)
-    const [cart, setCart] = useState<CartItem[]>([])
-    const [search, setSearch] = useState("")
-    const [showConfirm, setShowConfirm] = useState(false)
+const emptyResetForm: ResetForm = {
+    password:              "",
+    password_confirmation: "",
+}
 
-    const filtered = products.filter((p) =>
-        p.name.toLowerCase().includes(search.toLowerCase())
+function AkunKasir() {
+
+    const { isAdmin } = useAuth()
+    
+        // Redirect kalau bukan admin
+        if (!isAdmin) {
+            window.location.href = "/transaksi"
+            return null
+        }
+        
+    const [users, setUsers]       = useState<User[]>([])
+    const [loading, setLoading]   = useState(true)
+    const [saving, setSaving]     = useState(false)
+    const [deleting, setDeleting] = useState<number | null>(null)
+
+    const [search, setSearch]           = useState("")
+    const [filterRole, setFilterRole]   = useState<"" | "admin" | "cashier">("")
+
+    const [showForm, setShowForm]   = useState(false)
+    const [editId, setEditId]       = useState<number | null>(null)
+    const [form, setForm]           = useState<UserForm>(emptyForm)
+    const [formError, setFormError] = useState("")
+
+    const [showReset, setShowReset]         = useState(false)
+    const [resetTarget, setResetTarget]     = useState<User | null>(null)
+    const [resetForm, setResetForm]         = useState<ResetForm>(emptyResetForm)
+    const [resetError, setResetError]       = useState("")
+    const [resetSaving, setResetSaving]     = useState(false)
+    const [showResetPw, setShowResetPw]     = useState(false)
+
+    const [showPassword, setShowPassword]   = useState(false)
+
+    // Ambil user yang sedang login biar tidak bisa hapus diri sendiri
+    const currentUser = JSON.parse(localStorage.getItem("user") || "{}")
+
+    const fetchUsers = () => {
+        setLoading(true)
+        api.get("/users", {
+            params: {
+                per_page: 100,
+                ...(filterRole ? { role: filterRole } : {}),
+            },
+        })
+            .then(res => setUsers(res.data.data.data))
+            .catch(err => console.error(err))
+            .finally(() => setLoading(false))
+    }
+
+    useEffect(() => {
+        fetchUsers()
+    }, [filterRole])
+
+    const displayed = users.filter(u =>
+        u.name.toLowerCase().includes(search.toLowerCase()) ||
+        u.email.toLowerCase().includes(search.toLowerCase())
     )
 
-    const addToCart = (product: Product) => {
-        setCart((prev) => {
-            const existing = prev.find((c) => c.id === product.id)
-            if (existing) {
-                if (existing.qty >= product.stock) return prev
-                return prev.map((c) =>
-                    c.id === product.id ? { ...c, qty: c.qty + 1 } : c
-                )
+    const adminCount   = users.filter(u => u.role === "admin").length
+    const cashierCount = users.filter(u => u.role === "cashier").length
+
+    // Form handlers
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setForm({ ...form, [e.target.name]: e.target.value as any })
+        setFormError("")
+    }
+
+    const handleResetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setResetForm({ ...resetForm, [e.target.name]: e.target.value })
+        setResetError("")
+    }
+
+    const openAddForm = () => {
+        setForm(emptyForm)
+        setEditId(null)
+        setFormError("")
+        setShowPassword(false)
+        setShowForm(true)
+    }
+
+    const openEditForm = (user: User) => {
+        setForm({
+            name:                  user.name,
+            email:                 user.email,
+            password:              "",
+            password_confirmation: "",
+            role:                  user.role,
+        })
+        setEditId(user.id)
+        setFormError("")
+        setShowPassword(false)
+        setShowForm(true)
+    }
+
+    const handleSubmit = async () => {
+        if (!form.name || !form.email) {
+            setFormError("Nama dan email wajib diisi.")
+            return
+        }
+
+        if (!editId && !form.password) {
+            setFormError("Password wajib diisi untuk akun baru.")
+            return
+        }
+
+        if (form.password && form.password !== form.password_confirmation) {
+            setFormError("Konfirmasi password tidak cocok.")
+            return
+        }
+
+        if (form.password && form.password.length < 8) {
+            setFormError("Password minimal 8 karakter.")
+            return
+        }
+
+        setSaving(true)
+        try {
+            const payload: any = {
+                name:  form.name,
+                email: form.email,
+                role:  form.role,
             }
-            return [...prev, { ...product, qty: 1 }]
+
+            if (!editId || form.password) {
+                payload.password              = form.password
+                payload.password_confirmation = form.password_confirmation
+            }
+
+            if (editId !== null) {
+                await api.patch(`/users/${editId}`, payload)
+            } else {
+                await api.post("/users", payload)
+            }
+
+            setShowForm(false)
+            setEditId(null)
+            setForm(emptyForm)
+            fetchUsers()
+        } catch (err: any) {
+            const errors = err.response?.data?.errors
+            if (errors) {
+                const first = Object.values(errors)[0] as string[]
+                setFormError(first[0])
+            } else {
+                setFormError(err.response?.data?.message || "Gagal menyimpan akun.")
+            }
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    const handleDelete = async (user: User) => {
+        if (user.id === currentUser.id) {
+            alert("Kamu tidak bisa menghapus akunmu sendiri.")
+            return
+        }
+        if (!confirm(`Yakin ingin menghapus akun "${user.name}"? Akun ini akan langsung logout.`)) return
+
+        setDeleting(user.id)
+        try {
+            await api.delete(`/users/${user.id}`)
+            fetchUsers()
+        } catch (err: any) {
+            alert(err.response?.data?.message || "Gagal menghapus akun.")
+        } finally {
+            setDeleting(null)
+        }
+    }
+
+    const openResetPassword = (user: User) => {
+        setResetTarget(user)
+        setResetForm(emptyResetForm)
+        setResetError("")
+        setShowResetPw(false)
+        setShowReset(true)
+    }
+
+    const handleResetPassword = async () => {
+        if (!resetForm.password) {
+            setResetError("Password baru wajib diisi.")
+            return
+        }
+        if (resetForm.password.length < 8) {
+            setResetError("Password minimal 8 karakter.")
+            return
+        }
+        if (resetForm.password !== resetForm.password_confirmation) {
+            setResetError("Konfirmasi password tidak cocok.")
+            return
+        }
+
+        setResetSaving(true)
+        try {
+            await api.patch(`/users/${resetTarget?.id}/reset-password`, resetForm)
+            setShowReset(false)
+            setResetTarget(null)
+            alert(`Password "${resetTarget?.name}" berhasil direset.`)
+        } catch (err: any) {
+            setResetError(err.response?.data?.message || "Gagal reset password.")
+        } finally {
+            setResetSaving(false)
+        }
+    }
+
+    const formatDate = (dateStr: string) => {
+        return new Date(dateStr).toLocaleDateString("id-ID", {
+            day:   "numeric",
+            month: "long",
+            year:  "numeric",
         })
     }
 
-    const updateQty = (id: number, delta: number) => {
-        setCart((prev) =>
-            prev
-                .map((c) => (c.id === id ? { ...c, qty: c.qty + delta } : c))
-                .filter((c) => c.qty > 0)
-        )
-    }
-
-    const removeFromCart = (id: number) => {
-        setCart((prev) => prev.filter((c) => c.id !== id))
-    }
-
-    const total = cart.reduce((sum, c) => sum + c.price * c.qty, 0)
-
-    const handleBayar = () => {
-        setShowConfirm(true)
-    }
-
-    const handleKonfirmasi = () => {
-        setCart([])
-        setShowConfirm(false)
-    }
+    const RoleBadge = ({ role }: { role: "admin" | "cashier" }) => (
+        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+            role === "admin"
+                ? "bg-purple-50 text-purple-700"
+                : "bg-blue-50 text-blue-600"
+        }`}>
+            {role === "admin" ? "Admin" : "Kasir"}
+        </span>
+    )
 
     return (
-        <div className="h-full flex flex-col">
-            <h2 className="text-3xl font-bold mb-6">Kasir</h2>
+        <div>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-bold">Kelola Akun</h2>
+                <button
+                    onClick={openAddForm}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 active:scale-95 transition cursor-pointer"
+                >
+                    + Tambah Akun
+                </button>
+            </div>
 
-            <div className="grid grid-cols-12 gap-4 flex-1 min-h-0">
-
-                {/* Keranjang */}
-                <div className="col-span-8 bg-white p-5 flex flex-col rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="font-semibold text-gray-700 mb-3">Keranjang</h3>
-
-                    <div className="flex-1 overflow-y-auto min-h-0">
-                        {cart.length === 0 ? (
-                            <div className="h-full border-2 border-dashed rounded-lg flex items-center justify-center text-gray-400 text-sm">
-                                Keranjang masih kosong
-                            </div>
-                        ) : (
-                            <div className="space-y-2">
-                                {cart.map((item) => (
-                                    <div
-                                        key={item.id}
-                                        className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3 border border-gray-100"
-                                    >
-                                        <div className="flex-1">
-                                            <p className="font-medium text-gray-800">{item.name}</p>
-                                            <p className="text-sm text-gray-500">{fmt(item.price)} / pcs</p>
-                                        </div>
-
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => updateQty(item.id, -1)}
-                                                className="w-7 h-7 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-sm cursor-pointer transition"
-                                            >
-                                                −
-                                            </button>
-                                            <span className="w-6 text-center font-semibold text-gray-800">
-                                                {item.qty}
-                                            </span>
-                                            <button
-                                                onClick={() => updateQty(item.id, 1)}
-                                                className="w-7 h-7 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-sm cursor-pointer transition"
-                                            >
-                                                +
-                                            </button>
-                                        </div>
-
-                                        <p className="w-28 text-right font-semibold text-gray-800">
-                                            {fmt(item.price * item.qty)}
-                                        </p>
-
-                                        <button
-                                            onClick={() => removeFromCart(item.id)}
-                                            className="ml-4 text-red-400 hover:text-red-600 text-lg cursor-pointer transition"
-                                        >
-                                            ×
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Total & Bayar */}
-                    <div className="mt-4 border-t pt-4">
-                        <div className="flex justify-between items-center mb-3">
-                            <span className="text-gray-500 text-sm">Total Item</span>
-                            <span className="text-gray-700">{cart.reduce((s, c) => s + c.qty, 0)} pcs</span>
-                        </div>
-                        <div className="flex justify-between items-center mb-4">
-                            <span className="font-semibold text-gray-800">Total</span>
-                            <span className="text-xl font-bold text-gray-900">{fmt(total)}</span>
-                        </div>
-                        <button
-                            onClick={handleBayar}
-                            disabled={cart.length === 0}
-                            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition cursor-pointer active:scale-95"
-                        >
-                            Bayar
-                        </button>
-                    </div>
+            {/* Summary cards */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    <p className="text-xs text-gray-500 mb-1">Total Admin</p>
+                    <p className="text-2xl font-semibold text-gray-800">{adminCount} akun</p>
                 </div>
-
-                {/* Daftar Produk */}
-                <div className="col-span-4 bg-white p-4 flex flex-col rounded-xl shadow-sm border border-gray-100 min-h-0">
-                    <h3 className="font-semibold text-gray-700 mb-3">Produk</h3>
-
-                    <input
-                        type="text"
-                        placeholder="Cari barang..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="mb-3 p-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-blue-400"
-                    />
-
-                    <div className="flex-1 overflow-y-auto min-h-0 space-y-2">
-                        {filtered.map((product) => {
-                            const inCart = cart.find((c) => c.id === product.id)
-                            return (
-                                <div
-                                    key={product.id}
-                                    onClick={() => addToCart(product)}
-                                    className="flex items-center gap-3 bg-gray-50 hover:bg-blue-50 border border-gray-100 hover:border-blue-200 rounded-lg p-3 cursor-pointer transition duration-150"
-                                >
-                                    <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <span className="text-gray-400 text-xs">Img</span>
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-medium text-sm text-gray-800 truncate">{product.name}</p>
-                                        <p className="text-xs text-gray-500">{fmt(product.price)}</p>
-                                    </div>
-                                    {inCart ? (
-                                        <span className="text-xs bg-blue-600 text-white rounded-full px-2 py-0.5 font-semibold">
-                                            {inCart.qty}
-                                        </span>
-                                    ) : (
-                                        <span className="text-xs text-gray-400">Stok {product.stock}</span>
-                                    )}
-                                </div>
-                            )
-                        })}
-                    </div>
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    <p className="text-xs text-gray-500 mb-1">Total Kasir</p>
+                    <p className="text-2xl font-semibold text-gray-800">{cashierCount} akun</p>
                 </div>
             </div>
 
-            {/* Modal Konfirmasi Pembayaran */}
-            {showConfirm && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl p-6 w-96 shadow-xl">
-                        <h3 className="text-xl font-bold mb-4 text-gray-800">Konfirmasi Pembayaran</h3>
+            {/* Filter */}
+            <div className="flex items-center gap-3 mb-6 flex-wrap">
+                <input
+                    type="text"
+                    placeholder="Cari nama / email..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="border p-2 rounded-md text-sm flex-1 min-w-[180px] outline-none focus:border-blue-400"
+                />
+                <div className="flex gap-2">
+                    {(["", "admin", "cashier"] as const).map(role => (
+                        <button
+                            key={role}
+                            onClick={() => setFilterRole(role)}
+                            className={`px-4 py-2 rounded-md text-sm transition cursor-pointer border ${
+                                filterRole === role
+                                    ? "bg-gray-800 text-white border-gray-800"
+                                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                            }`}
+                        >
+                            {role === "" ? "Semua" : role === "admin" ? "Admin" : "Kasir"}
+                        </button>
+                    ))}
+                </div>
+            </div>
 
-                        <div className="space-y-2 mb-4 max-h-52 overflow-y-auto">
-                            {cart.map((item) => (
-                                <div key={item.id} className="flex justify-between text-sm text-gray-700">
-                                    <span>{item.name} × {item.qty}</span>
-                                    <span>{fmt(item.price * item.qty)}</span>
+            {/* List akun */}
+            <div className="bg-white p-6 rounded-lg shadow-md">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-bold">Daftar Akun</h3>
+                    <p className="bg-slate-100 px-4 py-2 rounded-lg text-sm">
+                        Total: <span className="font-bold">{displayed.length}</span> akun
+                    </p>
+                </div>
+
+                {loading ? (
+                    <p className="text-sm text-gray-400 text-center py-12">Memuat akun...</p>
+                ) : displayed.length === 0 ? (
+                    <p className="text-sm text-gray-400 text-center py-12">Tidak ada akun ditemukan.</p>
+                ) : (
+                    <div className="divide-y divide-gray-100">
+                        {displayed.map((user) => (
+                            <div
+                                key={user.id}
+                                className="flex items-center justify-between py-4 hover:bg-gray-50 px-2 rounded-lg transition"
+                            >
+                                {/* Avatar + info */}
+                                <div className="flex items-center gap-4 flex-1">
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                                        user.role === "admin" ? "bg-purple-50" : "bg-blue-50"
+                                    }`}>
+                                        <span className={`font-bold text-sm ${
+                                            user.role === "admin" ? "text-purple-600" : "text-blue-600"
+                                        }`}>
+                                            {user.name.charAt(0).toUpperCase()}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-semibold text-gray-800">{user.name}</p>
+                                            {user.id === currentUser.id && (
+                                                <span className="text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full">
+                                                    Kamu
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-gray-400">
+                                            {user.email} · Dibuat {formatDate(user.created_at)}
+                                        </p>
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
 
-                        <div className="border-t pt-3 mb-4 flex justify-between font-bold text-gray-900">
-                            <span>Total</span>
-                            <span>{fmt(total)}</span>
-                        </div>
+                                {/* Badge role */}
+                                <div className="mx-6">
+                                    <RoleBadge role={user.role} />
+                                </div>
 
-                        <div className="flex gap-3">
+                                {/* Actions */}
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => openEditForm(user)}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-sm cursor-pointer transition"
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={() => openResetPassword(user)}
+                                        className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-md text-sm cursor-pointer transition"
+                                    >
+                                        Reset Password
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(user)}
+                                        disabled={deleting === user.id || user.id === currentUser.id}
+                                        className="bg-red-500 hover:bg-red-600 disabled:bg-gray-200 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-md text-sm cursor-pointer transition"
+                                    >
+                                        {deleting === user.id ? "..." : "Hapus"}
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Modal Tambah / Edit Akun */}
+            {showForm && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-xl w-[420px] shadow-lg relative">
+                        <button
+                            onClick={() => setShowForm(false)}
+                            className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl cursor-pointer"
+                        >
+                            ×
+                        </button>
+
+                        <h3 className="text-xl font-bold mb-4">
+                            {editId ? "Edit Akun" : "Tambah Akun"}
+                        </h3>
+
+                        <div className="grid gap-3">
+                            <div>
+                                <label className="text-xs text-gray-500 mb-1 block">Nama</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    placeholder="Nama lengkap"
+                                    value={form.name}
+                                    onChange={handleChange}
+                                    className="w-full border p-2 rounded-md text-sm outline-none focus:border-blue-400"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs text-gray-500 mb-1 block">Email</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    placeholder="email@warung.com"
+                                    value={form.email}
+                                    onChange={handleChange}
+                                    className="w-full border p-2 rounded-md text-sm outline-none focus:border-blue-400"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs text-gray-500 mb-1 block">Role</label>
+                                <select
+                                    name="role"
+                                    value={form.role}
+                                    onChange={handleChange}
+                                    className="w-full border p-2 rounded-md text-sm text-gray-700 outline-none focus:border-blue-400 cursor-pointer"
+                                >
+                                    <option value="cashier">Kasir</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="text-xs text-gray-500 mb-1 block">
+                                    Password {editId && <span className="text-gray-400">(kosongkan jika tidak ingin mengubah)</span>}
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        name="password"
+                                        placeholder="Minimal 8 karakter"
+                                        value={form.password}
+                                        onChange={handleChange}
+                                        className="w-full border p-2 rounded-md text-sm outline-none focus:border-blue-400 pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer text-xs"
+                                    >
+                                        {showPassword ? "Sembunyikan" : "Tampilkan"}
+                                    </button>
+                                </div>
+                            </div>
+                            {form.password && (
+                                <div>
+                                    <label className="text-xs text-gray-500 mb-1 block">Konfirmasi Password</label>
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        name="password_confirmation"
+                                        placeholder="Ulangi password"
+                                        value={form.password_confirmation}
+                                        onChange={handleChange}
+                                        className="w-full border p-2 rounded-md text-sm outline-none focus:border-blue-400"
+                                    />
+                                </div>
+                            )}
+
+                            {formError && (
+                                <p className="text-xs text-red-500 bg-red-50 border border-red-100 px-3 py-2 rounded-lg">
+                                    {formError}
+                                </p>
+                            )}
+
                             <button
-                                onClick={() => setShowConfirm(false)}
-                                className="flex-1 border border-gray-300 py-2 rounded-lg text-gray-600 hover:bg-gray-50 cursor-pointer transition"
+                                onClick={handleSubmit}
+                                disabled={saving}
+                                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white py-2 rounded-md text-sm transition cursor-pointer mt-1"
                             >
-                                Batal
+                                {saving ? "Menyimpan..." : "Simpan"}
                             </button>
-                            <button
-                                onClick={handleKonfirmasi}
-                                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold cursor-pointer transition"
-                            >
-                                Konfirmasi
-                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Reset Password */}
+            {showReset && resetTarget && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-xl w-96 shadow-lg relative">
+                        <button
+                            onClick={() => setShowReset(false)}
+                            className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl cursor-pointer"
+                        >
+                            ×
+                        </button>
+
+                        <h3 className="text-xl font-bold mb-1">Reset Password</h3>
+                        <p className="text-sm text-gray-500 mb-4">
+                            Akun: <span className="font-semibold text-gray-700">{resetTarget.name}</span>
+                            <br />
+                            <span className="text-xs text-amber-600">Setelah direset, akun ini akan otomatis logout dari semua sesi.</span>
+                        </p>
+
+                        <div className="grid gap-3">
+                            <div>
+                                <label className="text-xs text-gray-500 mb-1 block">Password Baru</label>
+                                <div className="relative">
+                                    <input
+                                        type={showResetPw ? "text" : "password"}
+                                        name="password"
+                                        placeholder="Minimal 8 karakter"
+                                        value={resetForm.password}
+                                        onChange={handleResetChange}
+                                        className="w-full border p-2 rounded-md text-sm outline-none focus:border-blue-400 pr-24"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowResetPw(!showResetPw)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer text-xs"
+                                    >
+                                        {showResetPw ? "Sembunyikan" : "Tampilkan"}
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-xs text-gray-500 mb-1 block">Konfirmasi Password Baru</label>
+                                <input
+                                    type={showResetPw ? "text" : "password"}
+                                    name="password_confirmation"
+                                    placeholder="Ulangi password baru"
+                                    value={resetForm.password_confirmation}
+                                    onChange={handleResetChange}
+                                    className="w-full border p-2 rounded-md text-sm outline-none focus:border-blue-400"
+                                />
+                            </div>
+
+                            {resetError && (
+                                <p className="text-xs text-red-500 bg-red-50 border border-red-100 px-3 py-2 rounded-lg">
+                                    {resetError}
+                                </p>
+                            )}
+
+                            <div className="flex gap-3 mt-1">
+                                <button
+                                    onClick={() => setShowReset(false)}
+                                    className="flex-1 border border-gray-300 py-2 rounded-lg text-gray-600 hover:bg-gray-50 cursor-pointer text-sm"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    onClick={handleResetPassword}
+                                    disabled={resetSaving}
+                                    className="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white py-2 rounded-lg text-sm font-semibold cursor-pointer transition"
+                                >
+                                    {resetSaving ? "Memproses..." : "Reset Password"}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -230,4 +570,4 @@ function Kasir() {
     )
 }
 
-export default Kasir
+export default AkunKasir

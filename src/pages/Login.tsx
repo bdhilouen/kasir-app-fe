@@ -1,8 +1,9 @@
 import { useState } from "react"
-import { Eye, EyeOff, Lock, User } from "lucide-react"
+import { Eye, EyeOff, Lock, Mail } from "lucide-react"
+import api from "../lib/axios"
 
 function Login() {
-    const [form, setForm] = useState({ username: "", password: "" })
+    const [form, setForm] = useState({ email: "", password: "" })
     const [showPassword, setShowPassword] = useState(false)
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
@@ -12,21 +13,55 @@ function Login() {
         setError("")
     }
 
-    const handleLogin = () => {
-        if (!form.username || !form.password) {
-            setError("Username dan password wajib diisi.")
+    const handleLogin = async () => {
+        if (!form.email || !form.password) {
+            setError("Email dan password wajib diisi.")
             return
         }
 
         setLoading(true)
-        setTimeout(() => {
-            setLoading(false)
-            if (form.username === "admin" && form.password === "admin123") {
-                window.location.href = "/kasir"
+
+        try {
+            const response = await api.post("/auth/login", {
+                email:    form.email,
+                password: form.password,
+            })
+
+            const { token, user } = response.data.data
+
+            // Simpan token dan info user ke localStorage
+            localStorage.setItem("token", token)
+            localStorage.setItem("user", JSON.stringify(user))
+
+            // Redirect berdasarkan role
+            if (user.role === "admin") {
+                window.location.href = "/Statistik"
             } else {
-                setError("Username atau password salah.")
+                window.location.href = "/Transaksi"
             }
-        }, 1000)
+
+        } catch (err: any) {
+            const message = err.response?.data?.message
+
+            if (err.response?.status === 401) {
+                setError("Email atau password salah.")
+            } else if (err.response?.status === 422) {
+                // Validasi error dari Laravel
+                const errors = err.response?.data?.errors
+                if (errors) {
+                    const firstError = Object.values(errors)[0] as string[]
+                    setError(firstError[0])
+                } else {
+                    setError(message || "Terjadi kesalahan validasi.")
+                }
+            } else if (!err.response) {
+                setError("Tidak dapat terhubung ke server. Cek koneksi kamu.")
+            } else {
+                setError(message || "Terjadi kesalahan. Coba lagi.")
+            }
+        } finally {
+            setLoading(false)
+        }
     }
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -65,18 +100,18 @@ function Login() {
 
                     <div className="space-y-4">
 
-                        {/* Username */}
+                        {/* Email */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-medium text-gray-500">Username</label>
+                            <label className="text-xs font-medium text-gray-500">Email</label>
                             <div className="relative">
-                                <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                                 <input
-                                    type="text"
-                                    name="username"
-                                    value={form.username}
+                                    type="email"
+                                    name="email"
+                                    value={form.email}
                                     onChange={handleChange}
                                     onKeyDown={handleKeyDown}
-                                    placeholder="Masukkan username"
+                                    placeholder="Masukkan email"
                                     className="w-full border border-gray-200 rounded-lg pl-9 pr-4 py-2.5 text-sm text-gray-800 bg-gray-50 focus:bg-white focus:border-blue-400 outline-none transition"
                                 />
                             </div>
@@ -124,7 +159,7 @@ function Login() {
                     </div>
 
                     <p className="text-xs text-gray-400 text-center mt-8">
-                        Demo: username <span className="font-medium text-gray-600">admin</span> / password <span className="font-medium text-gray-600">admin123</span>
+                        © {new Date().getFullYear()} Toko Sejahtera
                     </p>
                 </div>
             </div>

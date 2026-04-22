@@ -1,7 +1,7 @@
-import { useLocation } from "react-router-dom"
+import { useLocation, Outlet } from "react-router-dom"
 import Sidebar from "./Sidebar"
 
-function Layout({ children }: { children: React.ReactNode }) {
+function Layout() {
     const location = useLocation()
     const hideSidebar = location.pathname === "/"
 
@@ -9,7 +9,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         <div className="flex h-screen">
             {!hideSidebar && <Sidebar />}
             <div className="flex-1 p-6 bg-gray-100 overflow-y-auto">
-                {children}
+                <Outlet />
             </div>
         </div>
     )
