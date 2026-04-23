@@ -1,99 +1,172 @@
-import { useState, useRef } from "react"
-import { ArrowLeft, User, Camera, LogOut, Lock, Eye, EyeOff } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
+import { ArrowLeft, User, Lock, Eye, EyeOff, LogOut } from "lucide-react"
+import api from "../lib/axios"
+
+interface UserProfile {
+    id: number
+    name: string
+    email: string
+    role: "admin" | "cashier"
+}
 
 function Profile() {
+    const [profile, setProfile]   = useState<UserProfile | null>(null)
+    const [loading, setLoading]   = useState(true)
+
     const [form, setForm] = useState({
-        namaLengkap: "Admin Toko",
-        username: "admin123",
-        email: "admin@tokoku.com",
-        noTelepon: "081234567890",
-        namaToko: "Toko Sejahtera",
-        alamatToko: "Jl. Merdeka No. 10, Bogor",
+        name:  "",
+        email: "",
     })
 
     const [passwordForm, setPasswordForm] = useState({
-        passwordLama: "",
-        passwordBaru: "",
-        konfirmasiPassword: "",
+        current_password:      "",
+        password:              "",
+        password_confirmation: "",
     })
 
     const [showPass, setShowPass] = useState({
-        passwordLama: false,
-        passwordBaru: false,
-        konfirmasiPassword: false,
+        current_password:      false,
+        password:              false,
+        password_confirmation: false,
     })
 
-    const [avatar, setAvatar] = useState<string | null>(null)
-    const [saved, setSaved] = useState(false)
-    const [passwordSaved, setPasswordSaved] = useState(false)
-    const [passwordError, setPasswordError] = useState("")
+    const [activeTab, setActiveTab]           = useState<"profil" | "password">("profil")
+    const [saving, setSaving]                 = useState(false)
+    const [profileSuccess, setProfileSuccess] = useState("")
+    const [profileError, setProfileError]     = useState("")
+    const [passwordSuccess, setPasswordSuccess] = useState("")
+    const [passwordError, setPasswordError]   = useState("")
     const [showLogoutModal, setShowLogoutModal] = useState(false)
-    const [activeTab, setActiveTab] = useState<"profil" | "password">("profil")
 
-    const fileRef = useRef<HTMLInputElement>(null)
+    // Fetch profil dari API
+    useEffect(() => {
+        api.get("/auth/me")
+            .then(res => {
+                const user: UserProfile = res.data.data
+                setProfile(user)
+                setForm({ name: user.name, email: user.email })
+            })
+            .catch(err => console.error(err))
+            .finally(() => setLoading(false))
+    }, [])
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value })
-        setSaved(false)
+        setProfileError("")
+        setProfileSuccess("")
     }
 
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPasswordForm({ ...passwordForm, [e.target.name]: e.target.value })
         setPasswordError("")
-        setPasswordSaved(false)
+        setPasswordSuccess("")
     }
 
-    const handleSave = () => {
-        setSaved(true)
-        setTimeout(() => setSaved(false), 2500)
+    // Simpan perubahan nama & email
+    const handleSaveProfile = async () => {
+        if (!form.name || !form.email) {
+            setProfileError("Nama dan email wajib diisi.")
+            return
+        }
+
+        setSaving(true)
+        try {
+            await api.patch(`/users/${profile?.id}`, {
+                name:  form.name,
+                email: form.email,
+            })
+
+            // Update localStorage supaya sidebar langsung terupdate
+            const stored = JSON.parse(localStorage.getItem("user") || "{}")
+            localStorage.setItem("user", JSON.stringify({
+                ...stored,
+                name:  form.name,
+                email: form.email,
+            }))
+
+            setProfile(prev => prev ? { ...prev, name: form.name, email: form.email } : prev)
+            setProfileSuccess("Profil berhasil diperbarui.")
+            setTimeout(() => setProfileSuccess(""), 3000)
+        } catch (err: any) {
+            const errors = err.response?.data?.errors
+            if (errors) {
+                const first = Object.values(errors)[0] as string[]
+                setProfileError(first[0])
+            } else {
+                setProfileError(err.response?.data?.message || "Gagal menyimpan profil.")
+            }
+        } finally {
+            setSaving(false)
+        }
     }
 
-    const handleSavePassword = () => {
-        if (!passwordForm.passwordLama || !passwordForm.passwordBaru || !passwordForm.konfirmasiPassword) {
+    // Ganti password sendiri
+    const handleSavePassword = async () => {
+        if (!passwordForm.current_password || !passwordForm.password || !passwordForm.password_confirmation) {
             setPasswordError("Semua field wajib diisi.")
             return
         }
-        if (passwordForm.passwordBaru !== passwordForm.konfirmasiPassword) {
-            setPasswordError("Password baru dan konfirmasi tidak cocok.")
+        if (passwordForm.password.length < 8) {
+            setPasswordError("Password baru minimal 8 karakter.")
             return
         }
-        if (passwordForm.passwordBaru.length < 6) {
-            setPasswordError("Password baru minimal 6 karakter.")
+        if (passwordForm.password !== passwordForm.password_confirmation) {
+            setPasswordError("Konfirmasi password tidak cocok.")
             return
         }
-        setPasswordError("")
-        setPasswordSaved(true)
-        setPasswordForm({ passwordLama: "", passwordBaru: "", konfirmasiPassword: "" })
-        setTimeout(() => setPasswordSaved(false), 2500)
+
+        setSaving(true)
+        try {
+            await api.patch("/users/change-password", passwordForm)
+            setPasswordForm({
+                current_password:      "",
+                password:              "",
+                password_confirmation: "",
+            })
+            setPasswordSuccess("Password berhasil diubah.")
+            setTimeout(() => setPasswordSuccess(""), 3000)
+        } catch (err: any) {
+            const errors = err.response?.data?.errors
+            if (errors) {
+                const first = Object.values(errors)[0] as string[]
+                setPasswordError(first[0])
+            } else {
+                setPasswordError(err.response?.data?.message || "Gagal mengubah password.")
+            }
+        } finally {
+            setSaving(false)
+        }
     }
 
-    const handleAvatar = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (!file) return
-        const reader = new FileReader()
-        reader.onload = () => setAvatar(reader.result as string)
-        reader.readAsDataURL(file)
+    const handleLogout = async () => {
+        try {
+            await api.post("/auth/logout")
+        } catch (_) {
+            // Tetap logout meski request gagal
+        } finally {
+            localStorage.removeItem("token")
+            localStorage.removeItem("user")
+            window.location.href = "/login"
+        }
     }
 
-    const handleLogout = () => {
-        setShowLogoutModal(false)
-        window.location.href = "/"
-    }
-
-    const profilFields: { label: string; name: keyof typeof form; placeholder: string }[] = [
-        { label: "Nama Lengkap", name: "namaLengkap", placeholder: "Masukkan nama lengkap" },
-        { label: "Username", name: "username", placeholder: "Masukkan username" },
-        { label: "Email", name: "email", placeholder: "Masukkan email" },
-        { label: "No. Telepon", name: "noTelepon", placeholder: "Masukkan no. telepon" },
-        { label: "Nama Toko", name: "namaToko", placeholder: "Masukkan nama toko" },
-        { label: "Alamat Toko", name: "alamatToko", placeholder: "Masukkan alamat toko" },
+    const passwordFields: {
+        label: string
+        name: keyof typeof passwordForm
+        placeholder: string
+    }[] = [
+        { label: "Password Lama",        name: "current_password",      placeholder: "Masukkan password lama" },
+        { label: "Password Baru",        name: "password",              placeholder: "Minimal 8 karakter" },
+        { label: "Konfirmasi Password",  name: "password_confirmation", placeholder: "Ulangi password baru" },
     ]
 
-    const passwordFields: { label: string; name: keyof typeof passwordForm; placeholder: string }[] = [
-        { label: "Password Lama", name: "passwordLama", placeholder: "Masukkan password lama" },
-        { label: "Password Baru", name: "passwordBaru", placeholder: "Masukkan password baru" },
-        { label: "Konfirmasi Password", name: "konfirmasiPassword", placeholder: "Ulangi password baru" },
-    ]
+    if (loading) {
+        return (
+            <div className="h-full flex items-center justify-center">
+                <p className="text-gray-400 text-sm">Memuat profil...</p>
+            </div>
+        )
+    }
 
     return (
         <div className="h-full flex flex-col">
@@ -112,7 +185,6 @@ function Profile() {
                         <h2 className="text-xl font-bold text-gray-800 leading-tight">Kelola Akun</h2>
                     </div>
                 </div>
-
                 <button
                     onClick={() => setShowLogoutModal(true)}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 text-sm font-medium cursor-pointer transition active:scale-95"
@@ -126,43 +198,42 @@ function Profile() {
 
                 {/* Kartu Kiri */}
                 <div className="col-span-4 bg-white rounded-xl border border-gray-100 shadow-sm flex flex-col items-center p-8 gap-4">
-                    <div className="relative">
-                        <div
-                            className="w-24 h-24 rounded-full bg-purple-100 flex items-center justify-center overflow-hidden cursor-pointer"
-                            onClick={() => fileRef.current?.click()}
+
+                    {/* Avatar */}
+                    <div className="w-24 h-24 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{
+                            background: profile?.role === "admin"
+                                ? "#f3e8ff"
+                                : "#eff6ff"
+                        }}
+                    >
+                        <span className="font-bold text-3xl"
+                            style={{ color: profile?.role === "admin" ? "#9333ea" : "#2563eb" }}
                         >
-                            {avatar ? (
-                                <img src={avatar} alt="avatar" className="w-full h-full object-cover" />
-                            ) : (
-                                <User size={40} className="text-purple-500" />
-                            )}
-                        </div>
-                        <button
-                            onClick={() => fileRef.current?.click()}
-                            className="absolute bottom-0 right-0 w-7 h-7 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 cursor-pointer transition"
-                        >
-                            <Camera size={13} className="text-gray-500" />
-                        </button>
-                        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
+                            {profile?.name.charAt(0).toUpperCase()}
+                        </span>
                     </div>
 
+                    {/* Info singkat */}
                     <div className="text-center">
-                        <p className="font-semibold text-gray-800 text-base">{form.namaLengkap}</p>
-                        <p className="text-sm text-gray-400">@{form.username}</p>
+                        <p className="font-semibold text-gray-800 text-base">{profile?.name}</p>
+                        <span className={`text-xs px-2.5 py-1 rounded-full font-medium mt-1 inline-block ${
+                            profile?.role === "admin"
+                                ? "bg-purple-50 text-purple-700"
+                                : "bg-blue-50 text-blue-600"
+                        }`}>
+                            {profile?.role === "admin" ? "Admin" : "Kasir"}
+                        </span>
                     </div>
 
                     <div className="w-full border-t border-gray-100 pt-4 space-y-2 text-sm">
                         <div className="flex justify-between text-gray-500">
                             <span>Email</span>
-                            <span className="text-gray-700 font-medium truncate ml-2">{form.email}</span>
+                            <span className="text-gray-700 font-medium truncate ml-2">{profile?.email}</span>
                         </div>
                         <div className="flex justify-between text-gray-500">
-                            <span>Telepon</span>
-                            <span className="text-gray-700 font-medium">{form.noTelepon}</span>
-                        </div>
-                        <div className="flex justify-between text-gray-500">
-                            <span>Toko</span>
-                            <span className="text-gray-700 font-medium truncate ml-2">{form.namaToko}</span>
+                            <span>Role</span>
+                            <span className="text-gray-700 font-medium capitalize">{profile?.role}</span>
                         </div>
                     </div>
 
@@ -170,20 +241,22 @@ function Profile() {
                     <div className="w-full mt-auto pt-4 border-t border-gray-100 space-y-1">
                         <button
                             onClick={() => setActiveTab("profil")}
-                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm cursor-pointer transition ${activeTab === "profil"
-                                ? "bg-blue-50 text-blue-600 font-medium"
-                                : "text-gray-500 hover:bg-gray-50"
-                                }`}
+                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm cursor-pointer transition ${
+                                activeTab === "profil"
+                                    ? "bg-blue-50 text-blue-600 font-medium"
+                                    : "text-gray-500 hover:bg-gray-50"
+                            }`}
                         >
                             <User size={15} />
                             Edit Profil
                         </button>
                         <button
                             onClick={() => setActiveTab("password")}
-                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm cursor-pointer transition ${activeTab === "password"
-                                ? "bg-blue-50 text-blue-600 font-medium"
-                                : "text-gray-500 hover:bg-gray-50"
-                                }`}
+                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm cursor-pointer transition ${
+                                activeTab === "password"
+                                    ? "bg-blue-50 text-blue-600 font-medium"
+                                    : "text-gray-500 hover:bg-gray-50"
+                            }`}
                         >
                             <Lock size={15} />
                             Ubah Password
@@ -197,35 +270,74 @@ function Profile() {
                     {/* Tab: Edit Profil */}
                     {activeTab === "profil" && (
                         <>
-                            <h3 className="font-semibold text-gray-700 mb-5">Informasi Akun</h3>
-                            <div className="grid grid-cols-2 gap-x-6 gap-y-4 flex-1">
-                                {profilFields.map((field) => (
-                                    <div key={field.name} className="flex flex-col gap-1">
-                                        <label className="text-xs text-gray-500 font-medium">{field.label}</label>
-                                        <input
-                                            type="text"
-                                            name={field.name}
-                                            value={form[field.name]}
-                                            onChange={handleChange}
-                                            placeholder={field.placeholder}
-                                            className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-400 transition bg-gray-50 focus:bg-white"
-                                        />
-                                    </div>
-                                ))}
+                            <h3 className="font-semibold text-gray-700 mb-1">Informasi Akun</h3>
+                            <p className="text-xs text-gray-400 mb-5">Perubahan nama dan email akan langsung diterapkan.</p>
+
+                            <div className="flex flex-col gap-4 max-w-sm">
+                                <div className="flex flex-col gap-1">
+                                    <label className="text-xs text-gray-500 font-medium">Nama Lengkap</label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={form.name}
+                                        onChange={handleFormChange}
+                                        placeholder="Masukkan nama lengkap"
+                                        className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-400 transition bg-gray-50 focus:bg-white"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <label className="text-xs text-gray-500 font-medium">Email</label>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={form.email}
+                                        onChange={handleFormChange}
+                                        placeholder="Masukkan email"
+                                        className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-400 transition bg-gray-50 focus:bg-white"
+                                    />
+                                </div>
+
+                                {/* Role — read only */}
+                                <div className="flex flex-col gap-1">
+                                    <label className="text-xs text-gray-500 font-medium">Role</label>
+                                    <input
+                                        type="text"
+                                        value={profile?.role === "admin" ? "Admin" : "Kasir"}
+                                        disabled
+                                        className="border border-gray-100 rounded-lg px-3 py-2 text-sm text-gray-400 bg-gray-50 cursor-not-allowed"
+                                    />
+                                    <p className="text-xs text-gray-400">Role tidak bisa diubah sendiri.</p>
+                                </div>
                             </div>
-                            <div className="mt-6 flex justify-end gap-3">
+
+                            {profileError && (
+                                <p className="text-xs text-red-500 bg-red-50 border border-red-100 px-3 py-2 rounded-lg mt-4 max-w-sm">
+                                    {profileError}
+                                </p>
+                            )}
+                            {profileSuccess && (
+                                <p className="text-xs text-green-600 bg-green-50 border border-green-100 px-3 py-2 rounded-lg mt-4 max-w-sm">
+                                    ✓ {profileSuccess}
+                                </p>
+                            )}
+
+                            <div className="mt-6 flex justify-start gap-3">
                                 <button
-                                    onClick={() => setSaved(false)}
+                                    onClick={() => {
+                                        setForm({ name: profile?.name ?? "", email: profile?.email ?? "" })
+                                        setProfileError("")
+                                        setProfileSuccess("")
+                                    }}
                                     className="px-5 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer transition"
                                 >
                                     Reset
                                 </button>
                                 <button
-                                    onClick={handleSave}
-                                    className={`px-6 py-2 rounded-lg text-sm font-semibold text-white cursor-pointer transition active:scale-95 ${saved ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"
-                                        }`}
+                                    onClick={handleSaveProfile}
+                                    disabled={saving}
+                                    className="px-6 py-2 rounded-lg text-sm font-semibold text-white cursor-pointer transition active:scale-95 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300"
                                 >
-                                    {saved ? "Tersimpan ✓" : "Simpan Perubahan"}
+                                    {saving ? "Menyimpan..." : "Simpan Perubahan"}
                                 </button>
                             </div>
                         </>
@@ -235,7 +347,10 @@ function Profile() {
                     {activeTab === "password" && (
                         <>
                             <h3 className="font-semibold text-gray-700 mb-1">Ubah Password</h3>
-                            <p className="text-xs text-gray-400 mb-6">Pastikan password baru minimal 6 karakter.</p>
+                            <p className="text-xs text-gray-400 mb-6">
+                                Setelah password diubah, sesi lain akan otomatis logout.
+                                Password minimal 8 karakter.
+                            </p>
 
                             <div className="flex flex-col gap-4 max-w-sm">
                                 {passwordFields.map((field) => (
@@ -253,7 +368,7 @@ function Profile() {
                                             <button
                                                 type="button"
                                                 onClick={() =>
-                                                    setShowPass((prev) => ({
+                                                    setShowPass(prev => ({
                                                         ...prev,
                                                         [field.name]: !prev[field.name],
                                                     }))
@@ -271,17 +386,20 @@ function Profile() {
                                         {passwordError}
                                     </p>
                                 )}
+                                {passwordSuccess && (
+                                    <p className="text-xs text-green-600 bg-green-50 border border-green-100 px-3 py-2 rounded-lg">
+                                        ✓ {passwordSuccess}
+                                    </p>
+                                )}
                             </div>
 
-                            <div className="mt-6 flex justify-start">
+                            <div className="mt-6">
                                 <button
                                     onClick={handleSavePassword}
-                                    className={`px-6 py-2 rounded-lg text-sm font-semibold text-white cursor-pointer transition active:scale-95 ${passwordSaved
-                                        ? "bg-green-600 hover:bg-green-700"
-                                        : "bg-blue-600 hover:bg-blue-700"
-                                        }`}
+                                    disabled={saving}
+                                    className="px-6 py-2 rounded-lg text-sm font-semibold text-white cursor-pointer transition active:scale-95 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300"
                                 >
-                                    {passwordSaved ? "Password Diperbarui ✓" : "Simpan Password"}
+                                    {saving ? "Menyimpan..." : "Simpan Password"}
                                 </button>
                             </div>
                         </>

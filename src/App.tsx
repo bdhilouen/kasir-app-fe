@@ -17,6 +17,7 @@ function App() {
 
       {/* PUBLIC ROUTE */}
       <Route path="/" element={<Login />} />
+      <Route path="/login" element={<Login />} />
 
       {/* PRIVATE ROUTE (pakai Layout) */}
       <Route element={<Layout />}>
