@@ -16,7 +16,7 @@ interface CategoryForm {
 }
 
 const emptyForm: CategoryForm = {
-    name:        "",
+    name: "",
     description: "",
 }
 
@@ -29,29 +29,27 @@ function Kategori() {
         window.location.href = "/transaksi"
         return null
     }
-    
+
     const [categories, setCategories] = useState<Category[]>([])
-    const [loading, setLoading]       = useState(true)
-    const [saving, setSaving]         = useState(false)
-    const [deleting, setDeleting]     = useState<number | null>(null)
+    const [loading, setLoading] = useState(true)
+    const [saving, setSaving] = useState(false)
+    const [deleting, setDeleting] = useState<number | null>(null)
 
-    const [search, setSearch]         = useState("")
-    const [showForm, setShowForm]     = useState(false)
-    const [editId, setEditId]         = useState<number | null>(null)
-    const [form, setForm]             = useState<CategoryForm>(emptyForm)
-    const [formError, setFormError]   = useState("")
+    const [search, setSearch] = useState("")
+    const [showForm, setShowForm] = useState(false)
+    const [editId, setEditId] = useState<number | null>(null)
+    const [form, setForm] = useState<CategoryForm>(emptyForm)
+    const [formError, setFormError] = useState("")
 
-    const [showMerge, setShowMerge]         = useState(false)
-    const [mergeSource, setMergeSource]     = useState<Category | null>(null)
+    const [showMerge, setShowMerge] = useState(false)
+    const [mergeSource, setMergeSource] = useState<Category | null>(null)
     const [mergeTargetId, setMergeTargetId] = useState("")
-    const [mergeSaving, setMergeSaving]     = useState(false)
+    const [mergeSaving, setMergeSaving] = useState(false)
 
     const fetchCategories = () => {
         setLoading(true)
         api.get("/categories", { params: { all: true } })
             .then(res => {
-                // all=true return array langsung, withCount dari index
-                // Fetch ulang dengan pagination biar dapat products_count
                 return api.get("/categories", { params: { per_page: 100 } })
             })
             .then(res => setCategories(res.data.data.data))
@@ -81,7 +79,7 @@ function Kategori() {
 
     const openEditForm = (category: Category) => {
         setForm({
-            name:        category.name,
+            name: category.name,
             description: category.description ?? "",
         })
         setEditId(category.id)
@@ -164,11 +162,12 @@ function Kategori() {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">Kategori</h2>
+            {/* Header */}
+            <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
+                <h2 className="text-2xl sm:text-3xl font-bold">Kategori</h2>
                 <button
                     onClick={openAddForm}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 active:scale-95 transition cursor-pointer"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 active:scale-95 transition cursor-pointer text-sm sm:text-base whitespace-nowrap"
                 >
                     + Tambah Kategori
                 </button>
@@ -186,10 +185,10 @@ function Kategori() {
             </div>
 
             {/* List Kategori */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold">Daftar Kategori</h3>
-                    <p className="bg-slate-100 px-4 py-2 rounded-lg text-sm">
+            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                <div className="flex flex-wrap justify-between items-center gap-2 mb-6">
+                    <h3 className="text-lg sm:text-xl font-bold">Daftar Kategori</h3>
+                    <p className="bg-slate-100 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm">
                         Total: <span className="font-bold">{displayed.length}</span> kategori
                     </p>
                 </div>
@@ -205,18 +204,18 @@ function Kategori() {
                         {displayed.map((category) => (
                             <div
                                 key={category.id}
-                                className="flex items-center justify-between py-4 hover:bg-gray-50 px-2 rounded-lg transition"
+                                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-4 hover:bg-gray-50 px-2 rounded-lg transition"
                             >
                                 {/* Info */}
-                                <div className="flex items-center gap-4 flex-1">
+                                <div className="flex items-center gap-3 flex-1 min-w-0">
                                     <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
                                         <span className="text-blue-600 font-bold text-sm">
                                             {category.name.charAt(0).toUpperCase()}
                                         </span>
                                     </div>
-                                    <div>
-                                        <p className="font-semibold text-gray-800">{category.name}</p>
-                                        <p className="text-xs text-gray-400">
+                                    <div className="min-w-0">
+                                        <p className="font-semibold text-gray-800 truncate">{category.name}</p>
+                                        <p className="text-xs text-gray-400 truncate">
                                             {category.description || "Tidak ada deskripsi"}
                                             {" · "}
                                             <span className="text-gray-500">slug: {category.slug}</span>
@@ -224,40 +223,40 @@ function Kategori() {
                                     </div>
                                 </div>
 
-                                {/* Badge jumlah produk */}
-                                <div className="mx-6">
-                                    <span className={`text-xs px-3 py-1 rounded-full font-medium ${
-                                        category.products_count > 0
+                                {/* Bottom row on mobile: badge + actions */}
+                                <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 pl-13 sm:pl-0">
+                                    {/* Badge jumlah produk */}
+                                    <span className={`text-xs px-3 py-1 rounded-full font-medium flex-shrink-0 ${category.products_count > 0
                                             ? "bg-green-50 text-green-700"
                                             : "bg-gray-100 text-gray-400"
-                                    }`}>
+                                        }`}>
                                         {category.products_count} produk
                                     </span>
-                                </div>
 
-                                {/* Actions */}
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => openEditForm(category)}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-sm cursor-pointer transition"
-                                    >
-                                        Edit
-                                    </button>
-                                    {category.products_count > 0 && (
+                                    {/* Actions */}
+                                    <div className="flex gap-2 flex-shrink-0">
                                         <button
-                                            onClick={() => openMerge(category)}
-                                            className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-md text-sm cursor-pointer transition"
+                                            onClick={() => openEditForm(category)}
+                                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-xs sm:text-sm cursor-pointer transition"
                                         >
-                                            Gabung
+                                            Edit
                                         </button>
-                                    )}
-                                    <button
-                                        onClick={() => handleDelete(category)}
-                                        disabled={deleting === category.id}
-                                        className="bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white px-3 py-1.5 rounded-md text-sm cursor-pointer transition"
-                                    >
-                                        {deleting === category.id ? "..." : "Hapus"}
-                                    </button>
+                                        {category.products_count > 0 && (
+                                            <button
+                                                onClick={() => openMerge(category)}
+                                                className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-md text-xs sm:text-sm cursor-pointer transition"
+                                            >
+                                                Gabung
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => handleDelete(category)}
+                                            disabled={deleting === category.id}
+                                            className="bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white px-3 py-1.5 rounded-md text-xs sm:text-sm cursor-pointer transition"
+                                        >
+                                            {deleting === category.id ? "..." : "Hapus"}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -267,8 +266,8 @@ function Kategori() {
 
             {/* Modal Tambah / Edit */}
             {showForm && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-xl w-96 shadow-lg relative">
+                <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+                    <div className="bg-white p-6 rounded-t-2xl sm:rounded-xl w-full sm:w-96 shadow-lg relative">
                         <button
                             onClick={() => setShowForm(false)}
                             className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl cursor-pointer"
@@ -326,8 +325,8 @@ function Kategori() {
 
             {/* Modal Gabung Kategori */}
             {showMerge && mergeSource && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-xl w-96 shadow-lg relative">
+                <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+                    <div className="bg-white p-6 rounded-t-2xl sm:rounded-xl w-full sm:w-96 shadow-lg relative">
                         <button
                             onClick={() => setShowMerge(false)}
                             className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl cursor-pointer"

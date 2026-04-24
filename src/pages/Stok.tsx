@@ -30,12 +30,12 @@ interface ProductForm {
 }
 
 const emptyForm: ProductForm = {
-    name:        "",
-    sku:         "",
+    name: "",
+    sku: "",
     category_id: "",
-    price:       "",
-    stock:       "",
-    min_stock:   "",
+    price: "",
+    stock: "",
+    min_stock: "",
     description: "",
 }
 
@@ -50,33 +50,33 @@ function Stok() {
         window.location.href = "/transaksi"
         return null
     }
-    
-    const [products, setProducts]     = useState<Product[]>([])
-    const [categories, setCategories] = useState<Category[]>([])
-    const [loading, setLoading]       = useState(true)
-    const [saving, setSaving]         = useState(false)
-    const [deleting, setDeleting]     = useState<number | null>(null)
 
-    const [search, setSearch]         = useState("")
-    const [sortOrder, setSortOrder]   = useState<"asc" | "desc">("asc")
+    const [products, setProducts] = useState<Product[]>([])
+    const [categories, setCategories] = useState<Category[]>([])
+    const [loading, setLoading] = useState(true)
+    const [saving, setSaving] = useState(false)
+    const [deleting, setDeleting] = useState<number | null>(null)
+
+    const [search, setSearch] = useState("")
+    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
     const [filterCategory, setFilterCategory] = useState<string>("")
     const [filterLowStock, setFilterLowStock] = useState(false)
 
-    const [showForm, setShowForm]     = useState(false)
-    const [editId, setEditId]         = useState<number | null>(null)
-    const [form, setForm]             = useState<ProductForm>(emptyForm)
-    const [formError, setFormError]   = useState<string>("")
+    const [showForm, setShowForm] = useState(false)
+    const [editId, setEditId] = useState<number | null>(null)
+    const [form, setForm] = useState<ProductForm>(emptyForm)
+    const [formError, setFormError] = useState<string>("")
 
-    const [showStockModal, setShowStockModal]   = useState(false)
-    const [stockTarget, setStockTarget]         = useState<Product | null>(null)
-    const [newStock, setNewStock]               = useState("")
+    const [showStockModal, setShowStockModal] = useState(false)
+    const [stockTarget, setStockTarget] = useState<Product | null>(null)
+    const [newStock, setNewStock] = useState("")
 
     // Fetch produk & kategori
     const fetchProducts = () => {
         setLoading(true)
         api.get("/products", {
             params: {
-                per_page:  100,
+                per_page: 100,
                 low_stock: filterLowStock || undefined,
             },
         })
@@ -98,8 +98,8 @@ function Stok() {
     // Filter + sort lokal
     const displayed = products
         .filter(p => {
-            const matchSearch   = p.name.toLowerCase().includes(search.toLowerCase()) ||
-                                  p.sku.toLowerCase().includes(search.toLowerCase())
+            const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
+                p.sku.toLowerCase().includes(search.toLowerCase())
             const matchCategory = filterCategory ? String(p.category_id) === filterCategory : true
             return matchSearch && matchCategory
         })
@@ -122,12 +122,12 @@ function Stok() {
 
     const openEditForm = (product: Product) => {
         setForm({
-            name:        product.name,
-            sku:         product.sku,
+            name: product.name,
+            sku: product.sku,
             category_id: product.category_id ? String(product.category_id) : "",
-            price:       String(product.price),
-            stock:       String(product.stock),
-            min_stock:   String(product.min_stock),
+            price: String(product.price),
+            stock: String(product.stock),
+            min_stock: String(product.min_stock),
             description: product.description ?? "",
         })
         setEditId(product.id)
@@ -144,12 +144,12 @@ function Stok() {
         setSaving(true)
         try {
             const payload = {
-                name:        form.name,
-                sku:         form.sku,
+                name: form.name,
+                sku: form.sku,
                 category_id: form.category_id ? Number(form.category_id) : null,
-                price:       Number(form.price),
-                stock:       Number(form.stock) || 0,
-                min_stock:   Number(form.min_stock) || 0,
+                price: Number(form.price),
+                stock: Number(form.stock) || 0,
+                min_stock: Number(form.min_stock) || 0,
                 description: form.description || null,
             }
 
@@ -213,17 +213,18 @@ function Stok() {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">Cek Stok</h2>
+            {/* ── Header ── */}
+            <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
+                <h2 className="text-2xl sm:text-3xl font-bold">Cek Stok</h2>
                 <button
                     onClick={openAddForm}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 active:scale-95 transition cursor-pointer"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 active:scale-95 transition cursor-pointer w-full sm:w-auto"
                 >
                     + Tambah Produk
                 </button>
             </div>
 
-            {/* Filter bar */}
+            {/* ── Filter bar ── */}
             <div className="flex items-center gap-3 mb-6 flex-wrap">
                 <input
                     type="text"
@@ -235,7 +236,7 @@ function Stok() {
                 <select
                     value={filterCategory}
                     onChange={(e) => setFilterCategory(e.target.value)}
-                    className="border p-2 rounded-md text-sm text-gray-700 outline-none focus:border-blue-400 cursor-pointer"
+                    className="border p-2 rounded-md text-sm text-gray-700 outline-none focus:border-blue-400 cursor-pointer w-full sm:w-auto"
                 >
                     <option value="">Semua Kategori</option>
                     {categories.map(cat => (
@@ -244,25 +245,24 @@ function Stok() {
                 </select>
                 <button
                     onClick={() => setFilterLowStock(!filterLowStock)}
-                    className={`px-4 py-2 rounded-md text-sm transition cursor-pointer border ${
-                        filterLowStock
+                    className={`px-4 py-2 rounded-md text-sm transition cursor-pointer border w-full sm:w-auto ${filterLowStock
                             ? "bg-red-600 text-white border-red-600"
                             : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                    }`}
+                        }`}
                 >
                     Stok Menipis {lowStockCount > 0 && `(${lowStockCount})`}
                 </button>
                 <button
                     onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-                    className="bg-gray-700 text-white px-4 py-2 rounded-md text-sm cursor-pointer hover:bg-gray-800 active:scale-95 transition"
+                    className="bg-gray-700 text-white px-4 py-2 rounded-md text-sm cursor-pointer hover:bg-gray-800 active:scale-95 transition w-full sm:w-auto"
                 >
                     Sort Harga ({sortOrder})
                 </button>
             </div>
 
-            {/* Grid produk */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <div className="flex justify-between items-center mb-6">
+            {/* ── Grid produk ── */}
+            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
                     <h3 className="text-xl font-bold">Stok Barang</h3>
                     <p className="bg-slate-100 px-4 py-2 rounded-lg text-sm">
                         Total Produk: <span className="font-bold">{displayed.length}</span>
@@ -274,7 +274,7 @@ function Stok() {
                 ) : displayed.length === 0 ? (
                     <p className="text-sm text-gray-400 text-center py-12">Tidak ada produk ditemukan.</p>
                 ) : (
-                    <div className="grid grid-cols-3 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                         {displayed.map((product) => {
                             const isLow = product.min_stock > 0 && product.stock <= product.min_stock
                             return (
@@ -329,13 +329,13 @@ function Stok() {
                 )}
             </div>
 
-            {/* Modal Tambah / Edit Produk */}
+            {/* ── Modal Tambah / Edit Produk ── */}
             {showForm && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-xl w-[420px] shadow-lg relative max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+                    <div className="bg-white p-5 sm:p-6 rounded-t-2xl sm:rounded-xl w-full sm:w-[420px] shadow-lg relative max-h-[90vh] overflow-y-auto">
                         <button
                             onClick={() => setShowForm(false)}
-                            className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl cursor-pointer"
+                            className="absolute top-3 right-4 text-gray-500 hover:text-black text-xl cursor-pointer"
                         >
                             ×
                         </button>
@@ -425,10 +425,10 @@ function Stok() {
                 </div>
             )}
 
-            {/* Modal Update Stok */}
+            {/* ── Modal Update Stok ── */}
             {showStockModal && stockTarget && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-xl w-80 shadow-lg">
+                <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+                    <div className="bg-white p-5 sm:p-6 rounded-t-2xl sm:rounded-xl w-full sm:w-80 shadow-lg">
                         <h3 className="text-lg font-bold mb-1">Update Stok</h3>
                         <p className="text-sm text-gray-500 mb-4">{stockTarget.name}</p>
 

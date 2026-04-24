@@ -49,7 +49,7 @@ const today = getLocalDate(new Date())
 const sevenDaysAgo = getLocalDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
 
 function Statistik() {
-    
+
     const { isAdmin } = useAuth()
 
     // Redirect kalau bukan admin
@@ -220,13 +220,13 @@ function Statistik() {
 
     return (
         <div>
-            <h2 className="text-3xl font-bold mb-6">Statistik</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-6">Statistik</h2>
 
             {/* Kartu hari ini */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Pendapatan Hari Ini</p>
-                    <p className="text-2xl font-semibold text-gray-800">
+                    <p className="text-xl sm:text-2xl font-semibold text-gray-800">
                         {loadingCards ? "—" : fmt(todaySummary?.total_revenue ?? 0)}
                     </p>
                     {!loadingCards && todaySummary && yesterdaySummary && (
@@ -236,7 +236,7 @@ function Statistik() {
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Total Transaksi Hari Ini</p>
-                    <p className="text-2xl font-semibold text-gray-800">
+                    <p className="text-xl sm:text-2xl font-semibold text-gray-800">
                         {loadingCards ? "—" : `${todaySummary?.total_transactions ?? 0} transaksi`}
                     </p>
                     {!loadingCards && todaySummary && yesterdaySummary && (
@@ -247,7 +247,7 @@ function Statistik() {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Pendapatan per Metode</p>
                     {loadingCards ? (
-                        <p className="text-2xl font-semibold text-gray-800">—</p>
+                        <p className="text-xl sm:text-2xl font-semibold text-gray-800">—</p>
                     ) : (
                         <div className="mt-1 space-y-1">
                             {(["cash", "transfer", "qris"] as const).map(method => (
@@ -264,74 +264,81 @@ function Statistik() {
             </div>
 
             {/* Filter tanggal + kategori */}
-            <div className="flex items-end gap-4 mb-6 flex-wrap">
-                <div className="flex flex-col gap-1">
-                    <label className="text-xs text-gray-500">Dari Tanggal</label>
-                    <input
-                        type="date"
-                        value={fromDate}
-                        onChange={(e) => setFromDate(e.target.value)}
-                        className="border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700 outline-none focus:border-gray-400"
-                    />
+            <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4 mb-6">
+                <div className="flex gap-3 flex-1">
+                    <div className="flex flex-col gap-1 flex-1">
+                        <label className="text-xs text-gray-500">Dari Tanggal</label>
+                        <input
+                            type="date"
+                            value={fromDate}
+                            onChange={(e) => setFromDate(e.target.value)}
+                            className="border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700 outline-none focus:border-gray-400 w-full"
+                        />
+                    </div>
+                    <div className="flex flex-col gap-1 flex-1">
+                        <label className="text-xs text-gray-500">Sampai Tanggal</label>
+                        <input
+                            type="date"
+                            value={toDate}
+                            onChange={(e) => setToDate(e.target.value)}
+                            className="border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700 outline-none focus:border-gray-400 w-full"
+                        />
+                    </div>
                 </div>
-                <div className="flex flex-col gap-1">
-                    <label className="text-xs text-gray-500">Sampai Tanggal</label>
-                    <input
-                        type="date"
-                        value={toDate}
-                        onChange={(e) => setToDate(e.target.value)}
-                        className="border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700 outline-none focus:border-gray-400"
-                    />
+                <div className="flex gap-3 sm:flex-none">
+                    <div className="flex flex-col gap-1 flex-1 sm:flex-none">
+                        <label className="text-xs text-gray-500">Kategori</label>
+                        <select
+                            value={selectedCategory ?? ""}
+                            onChange={(e) => setSelectedCategory(e.target.value ? Number(e.target.value) : null)}
+                            className="border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700 outline-none focus:border-gray-400 w-full"
+                        >
+                            <option value="">Semua Kategori</option>
+                            {categories.map(cat => (
+                                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="flex flex-col gap-1 justify-end">
+                        <label className="text-xs text-transparent select-none hidden sm:block">_</label>
+                        <button
+                            onClick={fetchChartData}
+                            disabled={loadingChart}
+                            className="bg-gray-800 text-white px-5 py-2 rounded-md text-sm hover:bg-gray-900 active:scale-95 transition cursor-pointer disabled:bg-gray-400 whitespace-nowrap"
+                        >
+                            {loadingChart ? "Memuat..." : "Terapkan"}
+                        </button>
+                    </div>
                 </div>
-                <div className="flex flex-col gap-1">
-                    <label className="text-xs text-gray-500">Kategori</label>
-                    <select
-                        value={selectedCategory ?? ""}
-                        onChange={(e) => setSelectedCategory(e.target.value ? Number(e.target.value) : null)}
-                        className="border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700 outline-none focus:border-gray-400"
-                    >
-                        <option value="">Semua Kategori</option>
-                        {categories.map(cat => (
-                            <option key={cat.id} value={cat.id}>{cat.name}</option>
-                        ))}
-                    </select>
-                </div>
-                <button
-                    onClick={fetchChartData}
-                    disabled={loadingChart}
-                    className="bg-gray-800 text-white px-5 py-2 rounded-md text-sm hover:bg-gray-900 active:scale-95 transition cursor-pointer disabled:bg-gray-400"
-                >
-                    {loadingChart ? "Memuat..." : "Terapkan"}
-                </button>
             </div>
 
             {/* Kartu rentang */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Total Pendapatan</p>
-                    <p className="text-xl font-semibold text-gray-800">
+                    <p className="text-lg sm:text-xl font-semibold text-gray-800">
                         {loadingChart ? "—" : fmt(totalRevenue)}
                     </p>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Total Transaksi</p>
-                    <p className="text-xl font-semibold text-gray-800">
+                    <p className="text-lg sm:text-xl font-semibold text-gray-800">
                         {loadingChart ? "—" : `${totalTrx} transaksi`}
                     </p>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Rata-rata per Transaksi</p>
-                    <p className="text-xl font-semibold text-gray-800">
+                    <p className="text-lg sm:text-xl font-semibold text-gray-800">
                         {loadingChart ? "—" : fmt(avgPerTrx)}
                     </p>
                 </div>
             </div>
 
             {/* Grafik */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5 mb-6">
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-base font-semibold text-gray-800">Grafik Pendapatan</h3>
-                    <div className="flex gap-4 text-xs text-gray-500">
+                    <h3 className="text-sm sm:text-base font-semibold text-gray-800">Grafik Pendapatan</h3>
+                    <div className="flex gap-3 sm:gap-4 text-xs text-gray-500">
                         <span className="flex items-center gap-1">
                             <span className="w-2.5 h-2.5 rounded-full bg-blue-600 inline-block"></span>
                             Pendapatan
@@ -342,7 +349,7 @@ function Statistik() {
                         </span>
                     </div>
                 </div>
-                <div className="relative w-full h-60">
+                <div className="relative w-full h-52 sm:h-60">
                     {loadingChart ? (
                         <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-400">
                             Memuat grafik...
@@ -358,8 +365,8 @@ function Statistik() {
             </div>
 
             {/* Top 5 Produk Terlaris */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                <h3 className="text-base font-semibold text-gray-800 mb-4">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5">
+                <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-4">
                     Top 5 Produk Terlaris
                 </h3>
                 {loadingChart ? (
@@ -371,11 +378,11 @@ function Statistik() {
                         {topProducts.map((product, i) => (
                             <div key={i} className="flex items-center gap-3">
                                 <span className="text-xs font-bold text-gray-400 w-4">{i + 1}</span>
-                                <div className="flex-1">
-                                    <p className="text-sm font-medium text-gray-800">{product.product_name}</p>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-gray-800 truncate">{product.product_name}</p>
                                     <p className="text-xs text-gray-400">{product.total_quantity} terjual</p>
                                 </div>
-                                <span className="text-sm font-semibold text-gray-700">
+                                <span className="text-sm font-semibold text-gray-700 flex-shrink-0">
                                     {fmt(product.total_revenue)}
                                 </span>
                             </div>

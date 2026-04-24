@@ -23,7 +23,7 @@ function Login() {
 
         try {
             const response = await api.post("/auth/login", {
-                email:    form.email,
+                email: form.email,
                 password: form.password,
             })
 
@@ -70,32 +70,40 @@ function Login() {
 
     return (
         <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
-            <div className="w-full max-w-4xl bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex min-h-[500px]">
+            <div className="w-full max-w-4xl bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row min-h-[500px]">
 
                 {/* Sisi Kiri — Branding */}
-                <div className="w-1/2 bg-slate-800 flex flex-col items-center justify-center p-12 gap-6">
+                <div className="hidden md:flex w-full md:w-1/2 bg-slate-800 flex-col items-center justify-center p-8 md:p-12 gap-6">
                     <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center">
                         <span className="text-white text-2xl font-bold">T</span>
                     </div>
                     <div className="text-center">
-                        <h1 className="text-white text-2xl font-bold">Toko Sejahtera</h1>
-                        <p className="text-slate-400 text-sm mt-2">Sistem Kasir & Manajemen Stok</p>
+                        <h1 className="text-white text-xl md:text-2xl font-bold">Toko Sejahtera</h1>
+                        <p className="text-slate-400 text-xs md:text-sm mt-2">
+                            Sistem Kasir & Manajemen Stok
+                        </p>
                     </div>
                     <div className="w-full border-t border-white/10 pt-6 space-y-3">
-                        {["Kelola stok barang dengan mudah", "Laporan penjualan harian", "Transaksi kasir cepat"].map((text) => (
+                        {[
+                            "Kelola stok barang dengan mudah",
+                            "Laporan penjualan harian",
+                            "Transaksi kasir cepat",
+                        ].map((text) => (
                             <div key={text} className="flex items-center gap-3">
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
-                                <p className="text-slate-400 text-sm">{text}</p>
+                                <p className="text-slate-400 text-xs md:text-sm">{text}</p>
                             </div>
                         ))}
                     </div>
                 </div>
 
                 {/* Sisi Kanan — Form Login */}
-                <div className="w-1/2 flex flex-col justify-center px-12 py-10">
-                    <div className="mb-8">
-                        <h2 className="text-2xl font-bold text-gray-800">Selamat Datang</h2>
-                        <p className="text-sm text-gray-400 mt-1">Masuk ke akun kamu untuk melanjutkan</p>
+                <div className="w-full md:w-1/2 flex flex-col justify-center px-6 md:px-12 py-8 md:py-10">
+                    <div className="mb-6 md:mb-8">
+                        <h2 className="text-xl md:text-2xl font-bold text-gray-800">Selamat Datang</h2>
+                        <p className="text-xs md:text-sm text-gray-400 mt-1">
+                            Masuk ke akun kamu untuk melanjutkan
+                        </p>
                     </div>
 
                     <div className="space-y-4">
@@ -158,7 +166,7 @@ function Login() {
                         </button>
                     </div>
 
-                    <p className="text-xs text-gray-400 text-center mt-8">
+                    <p className="text-xs text-gray-400 text-center mt-6 md:mt-8">
                         © {new Date().getFullYear()} Toko Sejahtera
                     </p>
                 </div>
