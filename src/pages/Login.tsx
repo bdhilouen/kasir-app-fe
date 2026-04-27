@@ -22,6 +22,8 @@ function Login() {
         setLoading(true)
 
         try {
+            console.log("URL:", import.meta.env.VITE_API_URL)
+
             const response = await api.post("/auth/login", {
                 email: form.email,
                 password: form.password,
