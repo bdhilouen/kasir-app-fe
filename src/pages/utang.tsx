@@ -175,24 +175,24 @@ function Utang() {
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">Kelola Utang</h2>
+                <h2 className="text-2xl md:text-3xl font-bold">Kelola Utang</h2>
             </div>
 
             {/* Summary cards */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Total Sisa Utang</p>
-                    <p className="text-2xl font-semibold text-red-600">{fmt(totalRemaining)}</p>
+                    <p className="text-xl md:text-2xl font-semibold text-red-600">{fmt(totalRemaining)}</p>
                     <p className="text-xs text-gray-400 mt-1">belum terlunasi</p>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Belum Bayar</p>
-                    <p className="text-2xl font-semibold text-gray-800">{unpaidCount} Utang</p>
+                    <p className="text-xl md:text-2xl font-semibold text-gray-800">{unpaidCount} Utang</p>
                     <p className="text-xs text-gray-400 mt-1">dalam halaman ini</p>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Bayar Sebagian</p>
-                    <p className="text-2xl font-semibold text-gray-800">{partialCount} Utang</p>
+                    <p className="text-xl md:text-2xl font-semibold text-gray-800">{partialCount} Utang</p>
                     <p className="text-xs text-gray-400 mt-1">dalam halaman ini</p>
                 </div>
             </div>
@@ -206,7 +206,7 @@ function Utang() {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                        className="border p-2 rounded-md text-sm flex-1 min-w-[200px] outline-none focus:border-blue-400"
+                        className="border p-2 rounded-md text-sm flex-1 min-w-full sm:min-w-[200px] outline-none focus:border-blue-400"
                     />
                     <button
                         onClick={handleSearch}
@@ -249,9 +249,9 @@ function Utang() {
             </div>
 
             {/* List utang */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="bg-white p-4 md:p-6 rounded-lg shadow-md">
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold">Daftar Utang</h3>
+                    <h3 className="text-lg md:text-xl font-bold">Daftar Utang</h3>
                 </div>
 
                 {loading ? (
@@ -263,7 +263,7 @@ function Utang() {
                         {debts.map((debt) => (
                             <div
                                 key={debt.id}
-                                className="flex items-center justify-between py-4 px-2 rounded-lg hover:bg-gray-50 transition"
+                                className="flex items-center justify-between gap-3 py-4 px-2 rounded-lg hover:bg-gray-50 transition"
                             >
                                 {/* Avatar + info */}
                                 <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -308,18 +308,18 @@ function Utang() {
                                 </div>
 
                                 {/* Badge status */}
-                                <div className="mx-4 flex-shrink-0">
+                                <div className="hidden sm:block mx-4 flex-shrink-0">
                                     <StatusBadge status={debt.status} />
                                 </div>
 
                                 {/* Amount */}
-                                <div className="text-right mr-4 flex-shrink-0">
+                                <div className="hidden md:block text-right mr-4 flex-shrink-0">
                                     <p className="font-semibold text-gray-800 text-sm">{fmt(debt.remaining_debt)}</p>
                                     <p className="text-xs text-gray-400">dari {fmt(debt.total_debt)}</p>
                                 </div>
 
                                 {/* Progress bar */}
-                                <div className="w-24 mr-4 flex-shrink-0">
+                                <div className="hidden md:block w-24 mr-4 flex-shrink-0">
                                     <div className="w-full bg-gray-100 rounded-full h-1.5">
                                         <div
                                             className={`h-1.5 rounded-full ${
@@ -336,10 +336,10 @@ function Utang() {
                                 </div>
 
                                 {/* Actions */}
-                                <div className="flex gap-2 flex-shrink-0">
+                                <div className="flex gap-1.5 flex-shrink-0">
                                     <button
                                         onClick={() => openDetail(debt)}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-sm cursor-pointer transition"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md text-xs md:text-sm cursor-pointer transition"
                                     >
                                         Detail
                                     </button>
@@ -347,13 +347,13 @@ function Utang() {
                                         <>
                                             <button
                                                 onClick={() => openPay(debt)}
-                                                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md text-sm cursor-pointer transition"
+                                                className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md text-xs md:text-sm cursor-pointer transition"
                                             >
                                                 Bayar
                                             </button>
                                             <button
                                                 onClick={() => openEdit(debt)}
-                                                className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-md text-sm cursor-pointer transition"
+                                                className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md text-xs md:text-sm cursor-pointer transition"
                                             >
                                                 Edit
                                             </button>
@@ -392,8 +392,8 @@ function Utang() {
             {/* Modal Detail utang */}
             {showDetail && selected && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl w-[440px] shadow-xl max-h-[90vh] overflow-y-auto">
-                        <div className="p-6">
+                    <div className="bg-white rounded-xl w-[calc(100vw-2rem)] max-w-[440px] shadow-xl max-h-[90vh] overflow-y-auto">
+                        <div className="p-5 md:p-6">
                             <div className="flex justify-between items-start mb-4">
                                 <div>
                                     <h3 className="text-xl font-bold">Detail Utang</h3>
@@ -490,7 +490,7 @@ function Utang() {
             {/* Modal Bayar utang */}
             {showPay && payTarget && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-xl w-96 shadow-xl">
+                    <div className="bg-white p-5 md:p-6 rounded-xl w-[calc(100vw-2rem)] max-w-96 shadow-xl">
                         <h3 className="text-xl font-bold mb-1">Proses Pembayaran</h3>
                         <p className="text-sm text-gray-500 mb-4">
                             Pelanggan: <span className="font-semibold text-gray-700">{payTarget.customer_name}</span>
@@ -586,7 +586,7 @@ function Utang() {
             {/* Modal Edit utang */}
             {showEdit && editTarget && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-xl w-96 shadow-xl">
+                    <div className="bg-white p-5 md:p-6 rounded-xl w-[calc(100vw-2rem)] max-w-96 shadow-xl relative">
                         <button
                             onClick={() => setShowEdit(false)}
                             className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl cursor-pointer"

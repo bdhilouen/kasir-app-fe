@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { ArrowLeft, User, Lock, Eye, EyeOff, LogOut } from "lucide-react"
 import api from "../lib/axios"
 
@@ -172,7 +172,7 @@ function Profile() {
         <div className="h-full flex flex-col">
 
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between gap-3 mb-6">
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => window.history.back()}
@@ -187,17 +187,17 @@ function Profile() {
                 </div>
                 <button
                     onClick={() => setShowLogoutModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 text-sm font-medium cursor-pointer transition active:scale-95"
+                    className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 text-sm font-medium cursor-pointer transition active:scale-95"
                 >
                     <LogOut size={15} />
                     Logout
                 </button>
             </div>
 
-            <div className="grid grid-cols-12 gap-5 flex-1 min-h-0">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-5 flex-1 min-h-0">
 
                 {/* Kartu Kiri */}
-                <div className="col-span-4 bg-white rounded-xl border border-gray-100 shadow-sm flex flex-col items-center p-8 gap-4">
+                <div className="md:col-span-4 bg-white rounded-xl border border-gray-100 shadow-sm flex flex-col items-center p-5 md:p-8 gap-4">
 
                     {/* Avatar */}
                     <div className="w-24 h-24 rounded-full flex items-center justify-center flex-shrink-0"
@@ -265,7 +265,7 @@ function Profile() {
                 </div>
 
                 {/* Kartu Kanan */}
-                <div className="col-span-8 bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col">
+                <div className="md:col-span-8 bg-white rounded-xl border border-gray-100 shadow-sm p-5 md:p-6 flex flex-col">
 
                     {/* Tab: Edit Profil */}
                     {activeTab === "profil" && (
@@ -321,7 +321,7 @@ function Profile() {
                                 </p>
                             )}
 
-                            <div className="mt-6 flex justify-start gap-3">
+                            <div className="mt-6 flex flex-col sm:flex-row justify-start gap-3">
                                 <button
                                     onClick={() => {
                                         setForm({ name: profile?.name ?? "", email: profile?.email ?? "" })
@@ -410,7 +410,7 @@ function Profile() {
             {/* Modal Logout */}
             {showLogoutModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl p-6 w-80 shadow-xl">
+                    <div className="bg-white rounded-xl p-5 md:p-6 w-[calc(100vw-2rem)] max-w-80 shadow-xl">
                         <div className="flex items-center justify-center w-12 h-12 bg-red-50 rounded-full mx-auto mb-4">
                             <LogOut size={20} className="text-red-500" />
                         </div>

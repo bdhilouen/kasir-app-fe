@@ -49,7 +49,7 @@ function Kategori() {
     const fetchCategories = () => {
         setLoading(true)
         api.get("/categories", { params: { all: true } })
-            .then(res => {
+            .then(() => {
                 // all=true return array langsung, withCount dari index
                 // Fetch ulang dengan pagination biar dapat products_count
                 return api.get("/categories", { params: { per_page: 100 } })
@@ -164,31 +164,31 @@ function Kategori() {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">Kategori</h2>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold">Kategori</h2>
                 <button
                     onClick={openAddForm}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 active:scale-95 transition cursor-pointer"
+                    className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 active:scale-95 transition cursor-pointer"
                 >
                     + Tambah Kategori
                 </button>
             </div>
 
             {/* Search */}
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex flex-wrap gap-2 mb-6">
                 <input
                     type="text"
                     placeholder="Cari kategori..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="border p-2 rounded-md text-sm flex-1 outline-none focus:border-blue-400"
+                    className="border p-2 rounded-md text-sm flex-1 min-w-full sm:min-w-[200px] outline-none focus:border-blue-400"
                 />
             </div>
 
             {/* List Kategori */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold">Daftar Kategori</h3>
+            <div className="bg-white p-4 md:p-6 rounded-lg shadow-md">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+                    <h3 className="text-lg md:text-xl font-bold">Daftar Kategori</h3>
                     <p className="bg-slate-100 px-4 py-2 rounded-lg text-sm">
                         Total: <span className="font-bold">{displayed.length}</span> kategori
                     </p>
@@ -205,18 +205,18 @@ function Kategori() {
                         {displayed.map((category) => (
                             <div
                                 key={category.id}
-                                className="flex items-center justify-between py-4 hover:bg-gray-50 px-2 rounded-lg transition"
+                                className="flex items-center justify-between gap-3 py-4 hover:bg-gray-50 px-2 rounded-lg transition"
                             >
                                 {/* Info */}
-                                <div className="flex items-center gap-4 flex-1">
+                                <div className="flex items-center gap-4 flex-1 min-w-0">
                                     <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
                                         <span className="text-blue-600 font-bold text-sm">
                                             {category.name.charAt(0).toUpperCase()}
                                         </span>
                                     </div>
-                                    <div>
+                                    <div className="min-w-0">
                                         <p className="font-semibold text-gray-800">{category.name}</p>
-                                        <p className="text-xs text-gray-400">
+                                        <p className="text-xs text-gray-400 truncate">
                                             {category.description || "Tidak ada deskripsi"}
                                             {" · "}
                                             <span className="text-gray-500">slug: {category.slug}</span>
@@ -225,7 +225,7 @@ function Kategori() {
                                 </div>
 
                                 {/* Badge jumlah produk */}
-                                <div className="mx-6">
+                                <div className="hidden md:block mx-6">
                                     <span className={`text-xs px-3 py-1 rounded-full font-medium ${
                                         category.products_count > 0
                                             ? "bg-green-50 text-green-700"
@@ -236,17 +236,17 @@ function Kategori() {
                                 </div>
 
                                 {/* Actions */}
-                                <div className="flex gap-2">
+                                <div className="flex gap-1.5 flex-shrink-0">
                                     <button
                                         onClick={() => openEditForm(category)}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-sm cursor-pointer transition"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md text-xs md:text-sm cursor-pointer transition"
                                     >
                                         Edit
                                     </button>
                                     {category.products_count > 0 && (
                                         <button
                                             onClick={() => openMerge(category)}
-                                            className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-md text-sm cursor-pointer transition"
+                                            className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md text-xs md:text-sm cursor-pointer transition"
                                         >
                                             Gabung
                                         </button>
@@ -254,7 +254,7 @@ function Kategori() {
                                     <button
                                         onClick={() => handleDelete(category)}
                                         disabled={deleting === category.id}
-                                        className="bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white px-3 py-1.5 rounded-md text-sm cursor-pointer transition"
+                                        className="bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md text-xs md:text-sm cursor-pointer transition"
                                     >
                                         {deleting === category.id ? "..." : "Hapus"}
                                     </button>
@@ -268,7 +268,7 @@ function Kategori() {
             {/* Modal Tambah / Edit */}
             {showForm && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-xl w-96 shadow-lg relative">
+                    <div className="bg-white p-5 md:p-6 rounded-xl w-[calc(100vw-2rem)] max-w-96 shadow-lg relative">
                         <button
                             onClick={() => setShowForm(false)}
                             className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl cursor-pointer"
@@ -327,7 +327,7 @@ function Kategori() {
             {/* Modal Gabung Kategori */}
             {showMerge && mergeSource && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-xl w-96 shadow-lg relative">
+                    <div className="bg-white p-5 md:p-6 rounded-xl w-[calc(100vw-2rem)] max-w-96 shadow-lg relative">
                         <button
                             onClick={() => setShowMerge(false)}
                             className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl cursor-pointer"

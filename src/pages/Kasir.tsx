@@ -259,38 +259,38 @@ function AkunKasir() {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">Kelola Akun</h2>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold">Kelola Akun</h2>
                 <button
                     onClick={openAddForm}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 active:scale-95 transition cursor-pointer"
+                    className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 active:scale-95 transition cursor-pointer"
                 >
                     + Tambah Akun
                 </button>
             </div>
 
             {/* Summary cards */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Total Admin</p>
-                    <p className="text-2xl font-semibold text-gray-800">{adminCount} akun</p>
+                    <p className="text-xl md:text-2xl font-semibold text-gray-800">{adminCount} akun</p>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Total Kasir</p>
-                    <p className="text-2xl font-semibold text-gray-800">{cashierCount} akun</p>
+                    <p className="text-xl md:text-2xl font-semibold text-gray-800">{cashierCount} akun</p>
                 </div>
             </div>
 
             {/* Filter */}
-            <div className="flex items-center gap-3 mb-6 flex-wrap">
+            <div className="flex flex-wrap gap-2 mb-6">
                 <input
                     type="text"
                     placeholder="Cari nama / email..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="border p-2 rounded-md text-sm flex-1 min-w-[180px] outline-none focus:border-blue-400"
+                    className="border p-2 rounded-md text-sm flex-1 min-w-full sm:min-w-[180px] outline-none focus:border-blue-400"
                 />
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                     {(["", "admin", "cashier"] as const).map(role => (
                         <button
                             key={role}
@@ -308,9 +308,9 @@ function AkunKasir() {
             </div>
 
             {/* List akun */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold">Daftar Akun</h3>
+            <div className="bg-white p-4 md:p-6 rounded-lg shadow-md">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+                    <h3 className="text-lg md:text-xl font-bold">Daftar Akun</h3>
                     <p className="bg-slate-100 px-4 py-2 rounded-lg text-sm">
                         Total: <span className="font-bold">{displayed.length}</span> akun
                     </p>
@@ -325,10 +325,10 @@ function AkunKasir() {
                         {displayed.map((user) => (
                             <div
                                 key={user.id}
-                                className="flex items-center justify-between py-4 hover:bg-gray-50 px-2 rounded-lg transition"
+                                className="flex items-center justify-between gap-3 py-4 hover:bg-gray-50 px-2 rounded-lg transition"
                             >
                                 {/* Avatar + info */}
-                                <div className="flex items-center gap-4 flex-1">
+                                <div className="flex items-center gap-4 flex-1 min-w-0">
                                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
                                         user.role === "admin" ? "bg-purple-50" : "bg-blue-50"
                                     }`}>
@@ -338,7 +338,7 @@ function AkunKasir() {
                                             {user.name.charAt(0).toUpperCase()}
                                         </span>
                                     </div>
-                                    <div>
+                                    <div className="min-w-0">
                                         <div className="flex items-center gap-2">
                                             <p className="font-semibold text-gray-800">{user.name}</p>
                                             {user.id === currentUser.id && (
@@ -347,35 +347,36 @@ function AkunKasir() {
                                                 </span>
                                             )}
                                         </div>
-                                        <p className="text-xs text-gray-400">
+                                        <p className="text-xs text-gray-400 truncate">
                                             {user.email} · Dibuat {formatDate(user.created_at)}
                                         </p>
                                     </div>
                                 </div>
 
                                 {/* Badge role */}
-                                <div className="mx-6">
+                                <div className="hidden md:block mx-6">
                                     <RoleBadge role={user.role} />
                                 </div>
 
                                 {/* Actions */}
-                                <div className="flex gap-2">
+                                <div className="flex gap-1.5 flex-shrink-0">
                                     <button
                                         onClick={() => openEditForm(user)}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-sm cursor-pointer transition"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md text-xs md:text-sm cursor-pointer transition"
                                     >
                                         Edit
                                     </button>
                                     <button
                                         onClick={() => openResetPassword(user)}
-                                        className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-md text-sm cursor-pointer transition"
+                                        className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md text-xs md:text-sm cursor-pointer transition"
                                     >
-                                        Reset Password
+                                        <span className="sm:hidden">Reset</span>
+                                        <span className="hidden sm:inline">Reset Password</span>
                                     </button>
                                     <button
                                         onClick={() => handleDelete(user)}
                                         disabled={deleting === user.id || user.id === currentUser.id}
-                                        className="bg-red-500 hover:bg-red-600 disabled:bg-gray-200 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-md text-sm cursor-pointer transition"
+                                        className="bg-red-500 hover:bg-red-600 disabled:bg-gray-200 disabled:cursor-not-allowed text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md text-xs md:text-sm cursor-pointer transition"
                                     >
                                         {deleting === user.id ? "..." : "Hapus"}
                                     </button>
@@ -389,7 +390,7 @@ function AkunKasir() {
             {/* Modal Tambah / Edit Akun */}
             {showForm && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-xl w-[420px] shadow-lg relative">
+                    <div className="bg-white p-5 md:p-6 rounded-xl w-[calc(100vw-2rem)] max-w-[420px] shadow-lg relative">
                         <button
                             onClick={() => setShowForm(false)}
                             className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl cursor-pointer"
@@ -493,7 +494,7 @@ function AkunKasir() {
             {/* Modal Reset Password */}
             {showReset && resetTarget && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-xl w-96 shadow-lg relative">
+                    <div className="bg-white p-5 md:p-6 rounded-xl w-[calc(100vw-2rem)] max-w-96 shadow-lg relative">
                         <button
                             onClick={() => setShowReset(false)}
                             className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl cursor-pointer"

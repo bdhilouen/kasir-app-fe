@@ -9,7 +9,7 @@ import Transaksi from "./pages/Transaksi";
 import Kategori from "./pages/Kategori";
 import Kasir from "./pages/Kasir";
 import RiwayatTransaksi from "./pages/RiwayatTransaksi";
-import Utang from "./pages/utang";
+import Utang from "./pages/Utang";
 
 function App() {
   return (

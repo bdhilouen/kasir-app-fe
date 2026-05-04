@@ -169,12 +169,12 @@ function Transaksi() {
 
     return (
         <div className="h-full flex flex-col">
-            <h2 className="text-3xl font-bold mb-6">Kasir</h2>
+            <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6">Kasir</h2>
 
-            <div className="grid grid-cols-12 gap-4 flex-1 min-h-0">
+            <div className="flex flex-col-reverse md:grid md:grid-cols-12 gap-4 flex-1 min-h-0">
 
                 {/* Keranjang */}
-                <div className="col-span-8 bg-white p-5 flex flex-col rounded-xl shadow-sm border border-gray-100">
+                <div className="md:col-span-8 bg-white p-4 md:p-5 flex flex-col rounded-xl shadow-sm border border-gray-100 min-h-[420px] md:min-h-0">
                     <h3 className="font-semibold text-gray-700 mb-3">Keranjang</h3>
 
                     <div className="flex-1 overflow-y-auto min-h-0">
@@ -187,9 +187,9 @@ function Transaksi() {
                                 {cart.map((item) => (
                                     <div
                                         key={item.product_id}
-                                        className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3 border border-gray-100"
+                                        className="flex flex-wrap md:flex-nowrap items-center justify-between gap-3 bg-gray-50 rounded-lg px-3 md:px-4 py-3 border border-gray-100"
                                     >
-                                        <div className="flex-1">
+                                        <div className="flex-1 min-w-[160px]">
                                             <p className="font-medium text-gray-800">{item.name}</p>
                                             <p className="text-sm text-gray-500">{fmt(item.price)} / pcs</p>
                                         </div>
@@ -213,13 +213,13 @@ function Transaksi() {
                                             </button>
                                         </div>
 
-                                        <p className="w-28 text-right font-semibold text-gray-800">
+                                        <p className="w-24 md:w-28 text-right font-semibold text-gray-800">
                                             {fmt(item.price * item.quantity)}
                                         </p>
 
                                         <button
                                             onClick={() => removeFromCart(item.product_id)}
-                                            className="ml-4 text-red-400 hover:text-red-600 text-lg cursor-pointer transition"
+                                            className="md:ml-1 text-red-400 hover:text-red-600 text-lg cursor-pointer transition"
                                         >
                                             ×
                                         </button>
@@ -250,7 +250,7 @@ function Transaksi() {
                 </div>
 
                 {/* Daftar Produk */}
-                <div className="col-span-4 bg-white p-4 flex flex-col rounded-xl shadow-sm border border-gray-100 min-h-0">
+                <div className="md:col-span-4 bg-white p-4 flex flex-col rounded-xl shadow-sm border border-gray-100 min-h-[420px] md:min-h-0">
                     <h3 className="font-semibold text-gray-700 mb-3">Produk</h3>
 
                     {/* Tab Kategori */}
@@ -334,7 +334,7 @@ function Transaksi() {
             {/* Modal Konfirmasi Pembayaran */}
             {showConfirm && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl p-6 w-96 shadow-xl">
+                    <div className="bg-white rounded-xl p-5 md:p-6 w-[calc(100vw-2rem)] max-w-96 shadow-xl">
                         <h3 className="text-xl font-bold mb-4 text-gray-800">Konfirmasi Pembayaran</h3>
 
                         <div className="space-y-2 mb-4 max-h-36 overflow-y-auto">
@@ -397,7 +397,7 @@ function Transaksi() {
                                 <p className={`text-sm mt-1 ${change >= 0 ? "text-green-600" : "text-red-500"}`}>
                                     {change >= 0
                                         ? `Kembalian: ${fmt(change)}`
-                                        : `Kurang: ${fmt(Math.abs(change))} — akan dicatat sebagai hutang`
+                                        : `Kurang: ${fmt(Math.abs(change))} — akan dicatat sebagai utang`
                                     }
                                 </p>
                             )}

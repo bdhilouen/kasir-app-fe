@@ -220,13 +220,13 @@ function Statistik() {
 
     return (
         <div>
-            <h2 className="text-3xl font-bold mb-6">Statistik</h2>
+            <h2 className="text-2xl md:text-3xl font-bold mb-6">Statistik</h2>
 
             {/* Kartu hari ini */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Pendapatan Hari Ini</p>
-                    <p className="text-2xl font-semibold text-gray-800">
+                    <p className="text-xl md:text-2xl font-semibold text-gray-800">
                         {loadingCards ? "—" : fmt(todaySummary?.total_revenue ?? 0)}
                     </p>
                     {!loadingCards && todaySummary && yesterdaySummary && (
@@ -236,7 +236,7 @@ function Statistik() {
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Total Transaksi Hari Ini</p>
-                    <p className="text-2xl font-semibold text-gray-800">
+                    <p className="text-xl md:text-2xl font-semibold text-gray-800">
                         {loadingCards ? "—" : `${todaySummary?.total_transactions ?? 0} transaksi`}
                     </p>
                     {!loadingCards && todaySummary && yesterdaySummary && (
@@ -264,7 +264,7 @@ function Statistik() {
             </div>
 
             {/* Filter tanggal + kategori */}
-            <div className="flex items-end gap-4 mb-6 flex-wrap">
+            <div className="flex flex-wrap gap-3 mb-6">
                 <div className="flex flex-col gap-1">
                     <label className="text-xs text-gray-500">Dari Tanggal</label>
                     <input
@@ -299,14 +299,14 @@ function Statistik() {
                 <button
                     onClick={fetchChartData}
                     disabled={loadingChart}
-                    className="bg-gray-800 text-white px-5 py-2 rounded-md text-sm hover:bg-gray-900 active:scale-95 transition cursor-pointer disabled:bg-gray-400"
+                    className="self-end bg-gray-800 text-white px-5 py-2 rounded-md text-sm hover:bg-gray-900 active:scale-95 transition cursor-pointer disabled:bg-gray-400"
                 >
                     {loadingChart ? "Memuat..." : "Terapkan"}
                 </button>
             </div>
 
             {/* Kartu rentang */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Total Pendapatan</p>
                     <p className="text-xl font-semibold text-gray-800">
@@ -328,10 +328,10 @@ function Statistik() {
             </div>
 
             {/* Grafik */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
-                <div className="flex justify-between items-center mb-4">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-5 mb-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
                     <h3 className="text-base font-semibold text-gray-800">Grafik Pendapatan</h3>
-                    <div className="flex gap-4 text-xs text-gray-500">
+                    <div className="flex flex-wrap gap-4 text-xs text-gray-500">
                         <span className="flex items-center gap-1">
                             <span className="w-2.5 h-2.5 rounded-full bg-blue-600 inline-block"></span>
                             Pendapatan
@@ -342,7 +342,7 @@ function Statistik() {
                         </span>
                     </div>
                 </div>
-                <div className="relative w-full h-60">
+                <div className="relative w-full h-64 md:h-60">
                     {loadingChart ? (
                         <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-400">
                             Memuat grafik...
@@ -358,7 +358,7 @@ function Statistik() {
             </div>
 
             {/* Top 5 Produk Terlaris */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-5">
                 <h3 className="text-base font-semibold text-gray-800 mb-4">
                     Top 5 Produk Terlaris
                 </h3>

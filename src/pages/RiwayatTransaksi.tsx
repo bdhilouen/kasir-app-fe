@@ -149,7 +149,7 @@ function RiwayatTransaksi() {
             debt:    "bg-red-50 text-red-600",
         }
         const label = {
-            paid: "Lunas", partial: "Sebagian", debt: "Hutang"
+            paid: "Lunas", partial: "Sebagian", debt: "Utang"
         }
         return (
             <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${map[status]}`}>
@@ -166,8 +166,8 @@ function RiwayatTransaksi() {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">Riwayat Transaksi</h2>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold">Riwayat Transaksi</h2>
                 <p className="bg-slate-100 px-4 py-2 rounded-lg text-sm">
                     Total: <span className="font-bold">{total}</span> transaksi
                 </p>
@@ -181,7 +181,7 @@ function RiwayatTransaksi() {
                         placeholder="Cari invoice / nama pelanggan..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="border p-2 rounded-md text-sm flex-1 min-w-[200px] outline-none focus:border-blue-400"
+                        className="border p-2 rounded-md text-sm flex-1 min-w-full sm:min-w-[200px] outline-none focus:border-blue-400"
                     />
 
                     {/* Filter status */}
@@ -193,7 +193,7 @@ function RiwayatTransaksi() {
                         <option value="">Semua Status</option>
                         <option value="paid">Lunas</option>
                         <option value="partial">Sebagian</option>
-                        <option value="debt">Hutang</option>
+                        <option value="debt">Utang</option>
                     </select>
 
                     {/* Filter metode bayar */}
@@ -265,7 +265,7 @@ function RiwayatTransaksi() {
             </div>
 
             {/* List transaksi */}
-            <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="bg-white p-4 md:p-6 rounded-lg shadow-md">
                 {loading ? (
                     <p className="text-sm text-gray-400 text-center py-12">Memuat transaksi...</p>
                 ) : displayed.length === 0 ? (
@@ -275,7 +275,7 @@ function RiwayatTransaksi() {
                         {displayed.map((trx) => (
                             <div
                                 key={trx.id}
-                                className={`flex items-center justify-between py-4 px-2 rounded-lg transition hover:bg-gray-50 ${
+                                className={`flex items-center justify-between gap-3 py-4 px-2 rounded-lg transition hover:bg-gray-50 ${
                                     trx.is_voided ? "opacity-50" : ""
                                 }`}
                             >
@@ -322,13 +322,13 @@ function RiwayatTransaksi() {
                                 </div>
 
                                 {/* Badge */}
-                                <div className="flex items-center gap-2 mx-4 flex-shrink-0">
+                                <div className="hidden md:flex items-center gap-2 mx-4 flex-shrink-0">
                                     <PaymentBadge method={trx.payment_method} />
                                     {!trx.is_voided && <StatusBadge status={trx.status} />}
                                 </div>
 
                                 {/* Amount */}
-                                <div className="text-right mr-4 flex-shrink-0">
+                                <div className="hidden md:block text-right mr-4 flex-shrink-0">
                                     <p className="font-semibold text-gray-800 text-sm">{fmt(trx.total_amount)}</p>
                                     {trx.change_amount > 0 && (
                                         <p className="text-xs text-gray-400">Kembalian {fmt(trx.change_amount)}</p>
@@ -336,17 +336,17 @@ function RiwayatTransaksi() {
                                 </div>
 
                                 {/* Actions */}
-                                <div className="flex gap-2 flex-shrink-0">
+                                <div className="flex gap-1.5 flex-shrink-0">
                                     <button
                                         onClick={() => openDetail(trx)}
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-sm cursor-pointer transition"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md text-xs md:text-sm cursor-pointer transition"
                                     >
                                         Detail
                                     </button>
                                     {!trx.is_voided && (
                                         <button
                                             onClick={() => openVoid(trx)}
-                                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-sm cursor-pointer transition"
+                                            className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md text-xs md:text-sm cursor-pointer transition"
                                         >
                                             Void
                                         </button>
@@ -384,8 +384,8 @@ function RiwayatTransaksi() {
             {/* Modal Detail Transaksi */}
             {showDetail && selected && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl w-[480px] shadow-xl max-h-[90vh] overflow-y-auto">
-                        <div className="p-6">
+                    <div className="bg-white rounded-xl w-[calc(100vw-2rem)] max-w-[480px] shadow-xl max-h-[90vh] overflow-y-auto">
+                        <div className="p-5 md:p-6">
                             <div className="flex justify-between items-start mb-4">
                                 <div>
                                     <h3 className="text-xl font-bold text-gray-800">Detail Transaksi</h3>
@@ -478,7 +478,7 @@ function RiwayatTransaksi() {
                                 )}
                                 {selected.status !== "paid" && !selected.is_voided && (
                                     <div className="flex justify-between text-red-500 border-t pt-2 mt-2">
-                                        <span>Sisa Hutang</span>
+                                        <span>Sisa Utang</span>
                                         <span className="font-bold">{fmt(selected.total_amount - selected.paid_amount)}</span>
                                     </div>
                                 )}
@@ -504,7 +504,7 @@ function RiwayatTransaksi() {
             {/* Modal Void Transaksi */}
             {showVoid && voidTarget && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-xl w-96 shadow-xl">
+                    <div className="bg-white p-5 md:p-6 rounded-xl w-[calc(100vw-2rem)] max-w-96 shadow-xl">
                         <h3 className="text-xl font-bold mb-1">Batalkan Transaksi</h3>
                         <p className="text-sm text-gray-500 mb-1">
                             Invoice: <span className="font-semibold text-gray-700">{voidTarget.invoice_number}</span>

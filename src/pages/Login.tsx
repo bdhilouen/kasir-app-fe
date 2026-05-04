@@ -75,10 +75,10 @@ function Login() {
                 {/* Sisi Kiri — Branding */}
                 <div className="w-1/2 bg-slate-800 flex flex-col items-center justify-center p-12 gap-6">
                     <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center">
-                        <span className="text-white text-2xl font-bold">T</span>
+                        <span className="text-white text-2xl font-bold">MK</span>
                     </div>
                     <div className="text-center">
-                        <h1 className="text-white text-2xl font-bold">Toko Sejahtera</h1>
+                        <h1 className="text-white text-2xl font-bold">MaKasir</h1>
                         <p className="text-slate-400 text-sm mt-2">Sistem Kasir & Manajemen Stok</p>
                     </div>
                     <div className="w-full border-t border-white/10 pt-6 space-y-3">
@@ -159,7 +159,7 @@ function Login() {
                     </div>
 
                     <p className="text-xs text-gray-400 text-center mt-8">
-                        © {new Date().getFullYear()} Toko Sejahtera
+                        © {new Date().getFullYear()} MaKasir
                     </p>
                 </div>
             </div>
