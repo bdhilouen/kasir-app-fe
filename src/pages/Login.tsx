@@ -24,6 +24,8 @@ function Login() {
         setLoading(true)
 
         try {
+            console.log("URL:", import.meta.env.VITE_API_URL)
+
             const response = await api.post("/auth/login", {
                 email: form.email,
                 password: form.password,
@@ -87,7 +89,7 @@ function Login() {
                         {["Kelola stok barang dengan mudah", "Laporan penjualan harian", "Transaksi kasir cepat"].map((text) => (
                             <div key={text} className="flex items-center gap-3">
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
-                                <p className="text-slate-400 text-sm">{text}</p>
+                                <p className="text-slate-400 text-xs md:text-sm">{text}</p>
                             </div>
                         ))}
                     </div>

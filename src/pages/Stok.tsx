@@ -31,12 +31,12 @@ interface ProductForm {
 }
 
 const emptyForm: ProductForm = {
-    name:        "",
-    sku:         "",
+    name: "",
+    sku: "",
     category_id: "",
-    price:       "",
-    stock:       "",
-    min_stock:   "",
+    price: "",
+    stock: "",
+    min_stock: "",
     description: "",
 }
 
@@ -51,22 +51,22 @@ function Stok() {
         window.location.href = "/transaksi"
         return null
     }
-    
-    const [products, setProducts]     = useState<Product[]>([])
-    const [categories, setCategories] = useState<Category[]>([])
-    const [loading, setLoading]       = useState(true)
-    const [saving, setSaving]         = useState(false)
-    const [deleting, setDeleting]     = useState<number | null>(null)
 
-    const [search, setSearch]         = useState("")
-    const [sortOrder, setSortOrder]   = useState<"asc" | "desc">("asc")
+    const [products, setProducts] = useState<Product[]>([])
+    const [categories, setCategories] = useState<Category[]>([])
+    const [loading, setLoading] = useState(true)
+    const [saving, setSaving] = useState(false)
+    const [deleting, setDeleting] = useState<number | null>(null)
+
+    const [search, setSearch] = useState("")
+    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
     const [filterCategory, setFilterCategory] = useState<string>("")
     const [filterLowStock, setFilterLowStock] = useState(false)
 
-    const [showForm, setShowForm]     = useState(false)
-    const [editId, setEditId]         = useState<number | null>(null)
-    const [form, setForm]             = useState<ProductForm>(emptyForm)
-    const [formError, setFormError]   = useState<string>("")
+    const [showForm, setShowForm] = useState(false)
+    const [editId, setEditId] = useState<number | null>(null)
+    const [form, setForm] = useState<ProductForm>(emptyForm)
+    const [formError, setFormError] = useState<string>("")
 
     const [showStockModal, setShowStockModal]   = useState(false)
     const [stockTarget, setStockTarget]         = useState<Product | null>(null)
@@ -78,7 +78,7 @@ function Stok() {
         setLoading(true)
         api.get("/products", {
             params: {
-                per_page:  100,
+                per_page: 100,
                 low_stock: filterLowStock || undefined,
             },
         })
@@ -100,8 +100,8 @@ function Stok() {
     // Filter + sort lokal
     const displayed = products
         .filter(p => {
-            const matchSearch   = p.name.toLowerCase().includes(search.toLowerCase()) ||
-                                  p.sku.toLowerCase().includes(search.toLowerCase())
+            const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
+                p.sku.toLowerCase().includes(search.toLowerCase())
             const matchCategory = filterCategory ? String(p.category_id) === filterCategory : true
             return matchSearch && matchCategory
         })
@@ -124,12 +124,12 @@ function Stok() {
 
     const openEditForm = (product: Product) => {
         setForm({
-            name:        product.name,
-            sku:         product.sku,
+            name: product.name,
+            sku: product.sku,
             category_id: product.category_id ? String(product.category_id) : "",
-            price:       String(product.price),
-            stock:       String(product.stock),
-            min_stock:   String(product.min_stock),
+            price: String(product.price),
+            stock: String(product.stock),
+            min_stock: String(product.min_stock),
             description: product.description ?? "",
         })
         setEditId(product.id)
@@ -146,12 +146,12 @@ function Stok() {
         setSaving(true)
         try {
             const payload = {
-                name:        form.name,
-                sku:         form.sku,
+                name: form.name,
+                sku: form.sku,
                 category_id: form.category_id ? Number(form.category_id) : null,
-                price:       Number(form.price),
-                stock:       Number(form.stock) || 0,
-                min_stock:   Number(form.min_stock) || 0,
+                price: Number(form.price),
+                stock: Number(form.stock) || 0,
+                min_stock: Number(form.min_stock) || 0,
                 description: form.description || null,
             }
 
@@ -262,7 +262,7 @@ function Stok() {
                         filterLowStock
                             ? "bg-red-600 text-white border-red-600"
                             : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                    }`}
+                        }`}
                 >
                     Stok Menipis {lowStockCount > 0 && `(${lowStockCount})`}
                 </button>
@@ -341,13 +341,13 @@ function Stok() {
                 )}
             </div>
 
-            {/* Modal Tambah / Edit Produk */}
+            {/* ── Modal Tambah / Edit Produk ── */}
             {showForm && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white p-5 md:p-6 rounded-xl w-[calc(100vw-2rem)] max-w-[420px] shadow-lg relative max-h-[90vh] overflow-y-auto">
                         <button
                             onClick={() => setShowForm(false)}
-                            className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl cursor-pointer"
+                            className="absolute top-3 right-4 text-gray-500 hover:text-black text-xl cursor-pointer"
                         >
                             ×
                         </button>
@@ -437,7 +437,7 @@ function Stok() {
                 </div>
             )}
 
-            {/* Modal Update Stok */}
+            {/* ── Modal Update Stok ── */}
             {showStockModal && stockTarget && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white p-5 md:p-6 rounded-xl w-[calc(100vw-2rem)] max-w-80 shadow-lg">

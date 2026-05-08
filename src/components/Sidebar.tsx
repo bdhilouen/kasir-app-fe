@@ -1,75 +1,106 @@
 import { NavLink } from "react-router-dom"
 import { useAuth } from "../hooks/useAuth"
+import { useState } from "react"
 
 function Sidebar() {
 
     const { isAdmin } = useAuth()
+    const [open, setOpen] = useState(false)
+
+    const menu = [
+        { name: "Transaksi", path: "/Transaksi" },
+        { name: "Utang", path: "/utang" },
+        { name: "Riwayat", path: "/riwayat" },
+    ]
+
+    const adminMenu = [
+        { name: "Stok", path: "/stok" },
+        { name: "Kategori", path: "/kategori" },
+        { name: "Statistik", path: "/statistik" },
+        { name: "Kasir", path: "/kasir" },
+    ]
 
     return (
-        <aside className="w-64 min-h-screen bg-gray-900 text-white p-5 flex flex-col justify-between">
+        <>
+            {/* HAMBURGER BUTTON (MOBILE) */}
+            <button
+                onClick={() => setOpen(true)}
+                className="md:hidden fixed top-4 left-4 z-50 bg-gray-900 text-white px-3 py-2 rounded-md"
+            >
+                ☰
+            </button>
 
-            <h1 className="text-2xl font-bold mb-8">MaKasir</h1>
+            {/* OVERLAY */}
+            {open && (
+                <div
+                    onClick={() => setOpen(false)}
+                    className="fixed inset-0 bg-black/40 z-40 md:hidden"
+                />
+            )}
 
-            <ul className="space-y-4">
-                <li className="hover:text-blue-400 p-1 rounded transition cursor-pointer duration-200"><NavLink to="/Transaksi" className={({ isActive }) =>
-                    `block p-2 rounded-md transition ${isActive
-                        ? "bg-slate-700 text-blue-400"
-                        : "hover:bg-slate-700"
-                    }`
-                }>Transaksi</NavLink></li>
-                <li className="hover:text-blue-400 p-1 rounded transition cursor-pointer duration-200"><NavLink to="/utang" className={({ isActive }) =>
-                    `block p-2 rounded-md transition ${isActive
-                        ? "bg-slate-700 text-blue-400"
-                        : "hover:bg-slate-700"
-                    }`
-                }>Utang</NavLink></li>
-                <li className="hover:text-blue-400 p-1 rounded transition cursor-pointer duration-200"><NavLink to="/riwayat" className={({ isActive }) =>
-                    `block p-2 rounded-md transition ${isActive
-                        ? "bg-slate-700 text-blue-400"
-                        : "hover:bg-slate-700"
-                    }`
-                }>Riwayat Transaksi</NavLink></li>
+            {/* SIDEBAR */}
+            <aside className={`
+                fixed md:static top-0 left-0 z-50
+                w-64 min-h-screen bg-gray-900 text-white p-5 flex flex-col justify-between
+                transform transition-transform duration-300
+                ${open ? "translate-x-0" : "-translate-x-full"}
+                md:translate-x-0
+            `}>
 
-                {isAdmin && (
-                    <>
-                        <li className="hover:text-blue-400  p-1 rounded transition cursor-pointer duration-200"><NavLink to="/stok" className={({ isActive }) =>
-                            `block p-2 rounded-md transition ${isActive
-                                ? "bg-slate-700 text-blue-400"
-                                : "hover:bg-slate-700"
-                            }`
-                        }>Stok</NavLink></li>
-                        <li className="hover:text-blue-400 p-1 rounded transition cursor-pointer duration-200"><NavLink to="/kategori" className={({ isActive }) =>
-                            `block p-2 rounded-md transition ${isActive
-                                ? "bg-slate-700 text-blue-400"
-                                : "hover:bg-slate-700"
-                            }`
-                        }>Kategori</NavLink></li>
-                        <li className="hover:text-blue-400  p-1 rounded transition cursor-pointer duration-200"><NavLink to="/statistik" className={({ isActive }) =>
-                            `block p-2 rounded-md transition ${isActive
-                                ? "bg-slate-700 text-blue-400"
-                                : "hover:bg-slate-700"
-                            }`
-                        }>Statistik</NavLink></li>
-                        <li className="hover:text-blue-400 p-1 rounded transition cursor-pointer duration-200"><NavLink to="/kasir" className={({ isActive }) =>
-                            `block p-2 rounded-md transition ${isActive
-                                ? "bg-slate-700 text-blue-400"
-                                : "hover:bg-slate-700"
-                            }`
-                        }>Kasir</NavLink></li>
-                    </>
-                )}
+                <div>
+                    <h1 className="text-2xl font-bold mb-8">MaKasir</h1>
 
+                    <ul className="space-y-2">
+                        {menu.map(item => (
+                            <li key={item.path}>
+                                <NavLink
+                                    to={item.path}
+                                    onClick={() => setOpen(false)}
+                                    className={({ isActive }) =>
+                                        `block p-2 rounded-md text-sm ${isActive
+                                            ? "bg-slate-700 text-blue-400"
+                                            : "hover:bg-slate-700"
+                                        }`
+                                    }
+                                >
+                                    {item.name}
+                                </NavLink>
+                            </li>
+                        ))}
 
-            </ul>
-            <div className="mt-auto">
-                <NavLink to="/profile" className={({ isActive }) =>
-                    `block p-2 rounded-md transition ${isActive
-                        ? "bg-slate-700 text-blue-400"
-                        : "hover:bg-slate-700"
-                    }`
-                }>Profile</NavLink>
-            </div>
-        </aside >
+                        {isAdmin && adminMenu.map(item => (
+                            <li key={item.path}>
+                                <NavLink
+                                    to={item.path}
+                                    onClick={() => setOpen(false)}
+                                    className={({ isActive }) =>
+                                        `block p-2 rounded-md text-sm ${isActive
+                                            ? "bg-slate-700 text-blue-400"
+                                            : "hover:bg-slate-700"
+                                        }`
+                                    }
+                                >
+                                    {item.name}
+                                </NavLink>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                <NavLink
+                    to="/profile"
+                    onClick={() => setOpen(false)}
+                    className={({ isActive }) =>
+                        `block p-2 rounded-md text-sm ${isActive
+                            ? "bg-slate-700 text-blue-400"
+                            : "hover:bg-slate-700"
+                        }`
+                    }
+                >
+                    Profile
+                </NavLink>
+            </aside>
+        </>
     )
 }
 

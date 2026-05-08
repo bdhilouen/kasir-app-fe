@@ -95,10 +95,10 @@ function Transaksi() {
                 ...prev,
                 {
                     product_id: product.id,
-                    name:       product.name,
-                    price:      product.price,
-                    quantity:   1,
-                    max_stock:  product.stock,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    max_stock: product.stock,
                 },
             ];
         });
@@ -122,7 +122,7 @@ function Transaksi() {
         setCart(prev => prev.filter(p => p.product_id !== product_id));
     };
 
-    const total  = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const change = paidAmount - total;
 
     const handleBayar = () => {
@@ -135,12 +135,12 @@ function Transaksi() {
         setLoading(true);
         try {
             const payload = {
-                customer_name:  customerName || null,
+                customer_name: customerName || null,
                 payment_method: paymentMethod,
-                paid_amount:    paidAmount,
+                paid_amount: paidAmount,
                 items: cart.map(item => ({
                     product_id: item.product_id,
-                    quantity:   item.quantity,
+                    quantity: item.quantity,
                 })),
             };
 
@@ -261,27 +261,26 @@ function Transaksi() {
                 <div className="md:col-span-4 bg-white p-4 flex flex-col rounded-xl shadow-sm border border-gray-100 min-h-[320px] max-h-[45vh] md:max-h-none md:min-h-0">
                     <h3 className="font-semibold text-gray-700 mb-3">Produk</h3>
 
-                    {/* Tab Kategori */}
-                    <div className="flex gap-1.5 mb-3 flex-wrap">
+                    {/* kategori */}
+                    <div className="flex gap-1.5 mb-3 flex-wrap overflow-x-auto">
                         <button
                             onClick={() => setActiveCategory(null)}
-                            className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer ${
-                                activeCategory === null
+                            className={`px-2.5 py-1 rounded-md text-xs ${activeCategory === null
                                     ? "bg-blue-600 text-white"
-                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                            }`}
+                                    : "bg-gray-100"
+                                }`}
                         >
                             Semua
                         </button>
+
                         {categories.map(cat => (
                             <button
                                 key={cat.id}
                                 onClick={() => setActiveCategory(cat.id)}
-                                className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer ${
-                                    activeCategory === cat.id
+                                className={`px-2.5 py-1 rounded-md text-xs ${activeCategory === cat.id
                                         ? "bg-blue-600 text-white"
-                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                }`}
+                                        : "bg-gray-100"
+                                    }`}
                             >
                                 {cat.name}
                             </button>
@@ -293,26 +292,19 @@ function Transaksi() {
                         placeholder="Cari barang..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="mb-3 p-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-blue-400"
+                        className="mb-3 p-2 border rounded-lg text-sm"
                     />
 
-                    <div className="flex-1 overflow-y-auto min-h-0 space-y-2">
-                        {loadingProducts ? (
-                            <p className="text-sm text-gray-400 text-center mt-4">Memuat produk...</p>
-                        ) : displayedProducts.length === 0 ? (
-                            <p className="text-sm text-gray-400 text-center mt-4">Produk tidak ditemukan.</p>
-                        ) : (
-                            displayedProducts.map((product) => {
-                                const inCart    = cart.find((c) => c.product_id === product.id);
-                                const outOfStock = product.stock === 0;
-                                return (
-                                    <div
-                                        key={product.id}
-                                        onClick={() => !outOfStock && addToCart(product)}
-                                        className={`flex items-center gap-3 border rounded-lg p-3 transition duration-150 ${
-                                            outOfStock
-                                                ? "bg-gray-50 border-gray-100 opacity-50 cursor-not-allowed"
-                                                : "bg-gray-50 hover:bg-blue-50 border-gray-100 hover:border-blue-200 cursor-pointer"
+                    <div className="flex-1 overflow-y-auto space-y-2">
+                        {displayedProducts.map(product => {
+                            const inCart = cart.find(c => c.product_id === product.id)
+                            const out = product.stock === 0
+
+                            return (
+                                <div
+                                    key={product.id}
+                                    onClick={() => !out && addToCart(product)}
+                                    className={`flex items-center gap-3 p-3 rounded-lg border ${out ? "opacity-50" : "hover:bg-blue-50 cursor-pointer"
                                         }`}
                                     >
                                         <div className="w-1 h-1  rounded-lg flex items-center justify-center flex-shrink-0">
@@ -332,14 +324,34 @@ function Transaksi() {
                                             <span className="text-xs text-gray-400">Stok {product.stock}</span>
                                         )}
                                     </div>
-                                );
-                            })
+
+                                    <p className="text-sm font-semibold">
+                                        {fmt(item.price * item.quantity)}
+                                    </p>
+
+                                </div>
+                            ))
                         )}
                     </div>
+
+                    <div className="mt-3 border-t pt-3">
+                        <p className="flex justify-between text-sm">
+                            <span>Total</span>
+                            <span className="font-bold">{fmt(total)}</span>
+                        </p>
+
+                        <button
+                            onClick={handleBayar}
+                            className="w-full mt-3 bg-blue-600 text-white py-2 rounded-lg"
+                        >
+                            Bayar
+                        </button>
+                    </div>
                 </div>
+
             </div>
 
-            {/* Modal Konfirmasi Pembayaran */}
+            {/* MODAL MOBILE FIX */}
             {showConfirm && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-xl p-5 md:p-6 w-[calc(100vw-2rem)] max-w-96 shadow-xl">
@@ -440,6 +452,7 @@ function Transaksi() {
                     </div>
                 </div>
             )}
+
         </div>
     );
 }

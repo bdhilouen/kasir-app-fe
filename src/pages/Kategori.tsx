@@ -17,7 +17,7 @@ interface CategoryForm {
 }
 
 const emptyForm: CategoryForm = {
-    name:        "",
+    name: "",
     description: "",
 }
 
@@ -30,20 +30,20 @@ function Kategori() {
         window.location.href = "/transaksi"
         return null
     }
-    
+
     const [categories, setCategories] = useState<Category[]>([])
-    const [loading, setLoading]       = useState(true)
-    const [saving, setSaving]         = useState(false)
-    const [deleting, setDeleting]     = useState<number | null>(null)
+    const [loading, setLoading] = useState(true)
+    const [saving, setSaving] = useState(false)
+    const [deleting, setDeleting] = useState<number | null>(null)
 
-    const [search, setSearch]         = useState("")
-    const [showForm, setShowForm]     = useState(false)
-    const [editId, setEditId]         = useState<number | null>(null)
-    const [form, setForm]             = useState<CategoryForm>(emptyForm)
-    const [formError, setFormError]   = useState("")
+    const [search, setSearch] = useState("")
+    const [showForm, setShowForm] = useState(false)
+    const [editId, setEditId] = useState<number | null>(null)
+    const [form, setForm] = useState<CategoryForm>(emptyForm)
+    const [formError, setFormError] = useState("")
 
-    const [showMerge, setShowMerge]         = useState(false)
-    const [mergeSource, setMergeSource]     = useState<Category | null>(null)
+    const [showMerge, setShowMerge] = useState(false)
+    const [mergeSource, setMergeSource] = useState<Category | null>(null)
     const [mergeTargetId, setMergeTargetId] = useState("")
     const [mergeSaving, setMergeSaving]     = useState(false)
     const [notice, setNotice]               = useState<Notice | null>(null)
@@ -83,7 +83,7 @@ function Kategori() {
 
     const openEditForm = (category: Category) => {
         setForm({
-            name:        category.name,
+            name: category.name,
             description: category.description ?? "",
         })
         setEditId(category.id)
@@ -247,10 +247,9 @@ function Kategori() {
                                         category.products_count > 0
                                             ? "bg-green-50 text-green-700"
                                             : "bg-gray-100 text-gray-400"
-                                    }`}>
+                                        }`}>
                                         {category.products_count} produk
                                     </span>
-                                </div>
 
                                 {/* Actions */}
                                 <div className="flex gap-1.5 flex-shrink-0">
@@ -265,7 +264,7 @@ function Kategori() {
                                             onClick={() => openMerge(category)}
                                             className="bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md text-xs md:text-sm cursor-pointer transition"
                                         >
-                                            Gabung
+                                            {deleting === category.id ? "..." : "Hapus"}
                                         </button>
                                     )}
                                     <button

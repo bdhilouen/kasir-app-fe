@@ -30,39 +30,39 @@ const formatDate = (dateStr: string) =>
     })
 
 function Utang() {
-    const [debts, setDebts]           = useState<Debt[]>([])
-    const [loading, setLoading]       = useState(true)
+    const [debts, setDebts] = useState<Debt[]>([])
+    const [loading, setLoading] = useState(true)
     const [currentPage, setCurrentPage] = useState(1)
-    const [lastPage, setLastPage]     = useState(1)
+    const [lastPage, setLastPage] = useState(1)
     const [totalRemaining, setTotalRemaining] = useState(0)
 
-    const [search, setSearch]           = useState("")
+    const [search, setSearch] = useState("")
     const [filterStatus, setFilterStatus] = useState("")
     const [filterOverdue, setFilterOverdue] = useState(false)
 
-    const [selected, setSelected]     = useState<Debt | null>(null)
+    const [selected, setSelected] = useState<Debt | null>(null)
     const [showDetail, setShowDetail] = useState(false)
 
-    const [showPay, setShowPay]       = useState(false)
-    const [payTarget, setPayTarget]   = useState<Debt | null>(null)
-    const [payAmount, setPayAmount]   = useState("")
-    const [payNotes, setPayNotes]     = useState("")
-    const [payError, setPayError]     = useState("")
-    const [paySaving, setPaySaving]   = useState(false)
+    const [showPay, setShowPay] = useState(false)
+    const [payTarget, setPayTarget] = useState<Debt | null>(null)
+    const [payAmount, setPayAmount] = useState("")
+    const [payNotes, setPayNotes] = useState("")
+    const [payError, setPayError] = useState("")
+    const [paySaving, setPaySaving] = useState(false)
 
-    const [showEdit, setShowEdit]     = useState(false)
+    const [showEdit, setShowEdit] = useState(false)
     const [editTarget, setEditTarget] = useState<Debt | null>(null)
     const [editDueDate, setEditDueDate] = useState("")
-    const [editNotes, setEditNotes]   = useState("")
+    const [editNotes, setEditNotes] = useState("")
     const [editSaving, setEditSaving] = useState(false)
-    const [editError, setEditError]   = useState("")
+    const [editError, setEditError] = useState("")
 
     const fetchDebts = (page = 1) => {
         setLoading(true)
         const params: any = { page, per_page: 15 }
-        if (filterStatus)  params.status  = filterStatus
+        if (filterStatus) params.status = filterStatus
         if (filterOverdue) params.overdue = true
-        if (search)        params.search  = search
+        if (search) params.search = search
 
         api.get("/debts", { params })
             .then(res => {
@@ -118,7 +118,7 @@ function Utang() {
         try {
             await api.post(`/debts/${payTarget?.id}/pay`, {
                 amount: amount,
-                notes:  payNotes || null,
+                notes: payNotes || null,
             })
             setShowPay(false)
             setPayTarget(null)
@@ -136,7 +136,7 @@ function Utang() {
         try {
             await api.patch(`/debts/${editTarget?.id}`, {
                 due_date: editDueDate || null,
-                notes:    editNotes   || null,
+                notes: editNotes || null,
             })
             setShowEdit(false)
             setEditTarget(null)
@@ -155,9 +155,9 @@ function Utang() {
 
     const StatusBadge = ({ status }: { status: Debt["status"] }) => {
         const map = {
-            unpaid:  "bg-red-50 text-red-600",
+            unpaid: "bg-red-50 text-red-600",
             partial: "bg-amber-50 text-amber-700",
-            paid:    "bg-green-50 text-green-700",
+            paid: "bg-green-50 text-green-700",
         }
         const label = {
             unpaid: "Belum Bayar", partial: "Sebagian", paid: "Lunas"
@@ -169,7 +169,7 @@ function Utang() {
         )
     }
 
-    const unpaidCount  = debts.filter(d => d.status === "unpaid").length
+    const unpaidCount = debts.filter(d => d.status === "unpaid").length
     const partialCount = debts.filter(d => d.status === "partial").length
 
     return (
@@ -199,7 +199,7 @@ function Utang() {
 
             {/* Filter */}
             <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6">
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-col sm:flex-row flex-wrap gap-3">
                     <input
                         type="text"
                         placeholder="Cari nama pelanggan..."
@@ -210,14 +210,14 @@ function Utang() {
                     />
                     <button
                         onClick={handleSearch}
-                        className="bg-gray-800 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-900 cursor-pointer transition"
+                        className="bg-gray-800 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-900 cursor-pointer transition w-full sm:w-auto"
                     >
                         Cari
                     </button>
                     <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="border p-2 rounded-md text-sm text-gray-700 outline-none focus:border-blue-400 cursor-pointer"
+                        className="border p-2 rounded-md text-sm text-gray-700 outline-none focus:border-blue-400 cursor-pointer w-full sm:w-auto"
                     >
                         <option value="">Semua Status</option>
                         <option value="unpaid">Belum Bayar</option>
@@ -226,11 +226,10 @@ function Utang() {
                     </select>
                     <button
                         onClick={() => setFilterOverdue(!filterOverdue)}
-                        className={`px-4 py-2 rounded-md text-sm transition cursor-pointer border ${
-                            filterOverdue
+                        className={`px-4 py-2 rounded-md text-sm transition cursor-pointer border w-full sm:w-auto ${filterOverdue
                                 ? "bg-red-600 text-white border-red-600"
                                 : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                        }`}
+                            }`}
                     >
                         Jatuh Tempo
                     </button>
@@ -241,7 +240,7 @@ function Utang() {
                             setFilterOverdue(false)
                             fetchDebts(1)
                         }}
-                        className="border border-gray-300 px-4 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-50 cursor-pointer transition"
+                        className="border border-gray-300 px-4 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-50 cursor-pointer transition w-full sm:w-auto"
                     >
                         Reset
                     </button>
@@ -267,20 +266,18 @@ function Utang() {
                             >
                                 {/* Avatar + info */}
                                 <div className="flex items-center gap-4 flex-1 min-w-0">
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                                        debt.status === "paid"
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${debt.status === "paid"
                                             ? "bg-green-50"
                                             : isOverdue(debt)
                                                 ? "bg-red-100"
                                                 : "bg-amber-50"
-                                    }`}>
-                                        <span className={`font-bold text-sm ${
-                                            debt.status === "paid"
+                                        }`}>
+                                        <span className={`font-bold text-sm ${debt.status === "paid"
                                                 ? "text-green-600"
                                                 : isOverdue(debt)
                                                     ? "text-red-600"
                                                     : "text-amber-600"
-                                        }`}>
+                                            }`}>
                                             {debt.customer_name.charAt(0).toUpperCase()}
                                         </span>
                                     </div>
@@ -330,10 +327,6 @@ function Utang() {
                                             }}
                                         />
                                     </div>
-                                    <p className="text-xs text-gray-400 mt-0.5 text-right">
-                                        {Math.round((debt.paid_amount / debt.total_debt) * 100)}%
-                                    </p>
-                                </div>
 
                                 {/* Actions */}
                                 <div className="flex gap-1.5 flex-shrink-0">
@@ -367,7 +360,7 @@ function Utang() {
 
                 {/* Pagination */}
                 {lastPage > 1 && (
-                    <div className="flex justify-center items-center gap-2 mt-6">
+                    <div className="flex flex-wrap justify-center items-center gap-2 mt-6">
                         <button
                             onClick={() => fetchDebts(currentPage - 1)}
                             disabled={currentPage === 1}
@@ -375,7 +368,7 @@ function Utang() {
                         >
                             ← Sebelumnya
                         </button>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-gray-500 text-center">
                             Halaman {currentPage} dari {lastPage}
                         </span>
                         <button
@@ -408,7 +401,7 @@ function Utang() {
                             </div>
 
                             {/* Info */}
-                            <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-sm">
                                 <div>
                                     <p className="text-xs text-gray-400">Invoice</p>
                                     <p className="font-medium text-gray-700">{selected.transaction?.invoice_number}</p>
@@ -443,16 +436,16 @@ function Utang() {
                                         style={{ width: `${Math.min(100, (selected.paid_amount / selected.total_debt) * 100)}%` }}
                                     />
                                 </div>
-                                <div className="grid grid-cols-3 gap-2 text-center">
-                                    <div>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center">
+                                    <div className="text-left sm:text-center">
                                         <p className="text-xs text-gray-400">Total Utang</p>
                                         <p className="font-semibold text-gray-800 text-sm">{fmt(selected.total_debt)}</p>
                                     </div>
-                                    <div>
+                                    <div className="text-left sm:text-center">
                                         <p className="text-xs text-gray-400">Sudah Bayar</p>
                                         <p className="font-semibold text-green-600 text-sm">{fmt(selected.paid_amount)}</p>
                                     </div>
-                                    <div>
+                                    <div className="text-left sm:text-center">
                                         <p className="text-xs text-gray-400">Sisa</p>
                                         <p className="font-semibold text-red-500 text-sm">{fmt(selected.remaining_debt)}</p>
                                     </div>
@@ -461,7 +454,7 @@ function Utang() {
 
                             {/* Tombol aksi */}
                             {selected.status !== "paid" && (
-                                <div className="flex gap-3">
+                                <div className="flex flex-col sm:flex-row gap-3">
                                     <button
                                         onClick={() => {
                                             setShowDetail(false)
@@ -529,11 +522,10 @@ function Utang() {
                                 <div className="bg-gray-50 rounded-lg px-3 py-2 text-sm">
                                     <div className="flex justify-between text-gray-600">
                                         <span>Sisa setelah bayar</span>
-                                        <span className={`font-semibold ${
-                                            payTarget.remaining_debt - Number(payAmount) <= 0
+                                        <span className={`font-semibold ${payTarget.remaining_debt - Number(payAmount) <= 0
                                                 ? "text-green-600"
                                                 : "text-amber-600"
-                                        }`}>
+                                            }`}>
                                             {fmt(Math.max(0, payTarget.remaining_debt - Number(payAmount)))}
                                         </span>
                                     </div>
@@ -589,7 +581,7 @@ function Utang() {
                     <div className="bg-white p-5 md:p-6 rounded-xl w-[calc(100vw-2rem)] max-w-96 shadow-xl relative">
                         <button
                             onClick={() => setShowEdit(false)}
-                            className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl cursor-pointer"
+                            className="absolute top-4 right-4 text-gray-400 hover:text-black text-xl cursor-pointer"
                         >
                             ×
                         </button>
@@ -614,22 +606,23 @@ function Utang() {
                                 {editDueDate && (
                                     <button
                                         onClick={() => setEditDueDate("")}
-                                        className="text-xs text-gray-400 hover:text-red-500 mt-1 cursor-pointer"
+                                        className="text-xs text-gray-400 hover:text-red-500 mt-1 cursor-pointer block"
                                     >
                                         Hapus jatuh tempo
                                     </button>
                                 )}
                             </div>
+
                             <div>
                                 <label className="text-xs text-gray-500 mb-1 block">
                                     Catatan <span className="text-gray-400">(opsional)</span>
                                 </label>
-                                <textarea
-                                    placeholder="Catatan tambahan..."
+                                <input
+                                    type="text"
                                     value={editNotes}
                                     onChange={(e) => setEditNotes(e.target.value)}
-                                    rows={3}
-                                    className="w-full border p-2 rounded-md text-sm outline-none focus:border-blue-400 resize-none"
+                                    placeholder="Tambahkan catatan..."
+                                    className="w-full border p-2 rounded-md text-sm outline-none focus:border-blue-400"
                                 />
                             </div>
 
@@ -639,10 +632,11 @@ function Utang() {
                                 </p>
                             )}
 
-                            <div className="flex gap-3 mt-1">
+                            <div className="flex gap-3 mt-2">
                                 <button
                                     onClick={() => setShowEdit(false)}
-                                    className="flex-1 border border-gray-300 py-2 rounded-lg text-gray-600 hover:bg-gray-50 cursor-pointer text-sm"
+                                    disabled={editSaving}
+                                    className="flex-1 border border-gray-300 py-2 rounded-lg text-gray-600 hover:bg-gray-50 cursor-pointer text-sm transition"
                                 >
                                     Batal
                                 </button>
@@ -651,7 +645,7 @@ function Utang() {
                                     disabled={editSaving}
                                     className="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white py-2 rounded-lg text-sm font-semibold cursor-pointer transition"
                                 >
-                                    {editSaving ? "Menyimpan..." : "Simpan"}
+                                    {editSaving ? "Menyimpan..." : "Simpan Perubahan"}
                                 </button>
                             </div>
                         </div>

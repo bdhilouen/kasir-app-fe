@@ -41,41 +41,41 @@ const formatDateTime = (dateStr: string) =>
     })
 
 function RiwayatTransaksi() {
-    const [transactions, setTransactions]   = useState<Transaction[]>([])
-    const [loading, setLoading]             = useState(true)
-    const [currentPage, setCurrentPage]     = useState(1)
-    const [lastPage, setLastPage]           = useState(1)
-    const [total, setTotal]                 = useState(0)
+    const [transactions, setTransactions] = useState<Transaction[]>([])
+    const [loading, setLoading] = useState(true)
+    const [currentPage, setCurrentPage] = useState(1)
+    const [lastPage, setLastPage] = useState(1)
+    const [total, setTotal] = useState(0)
 
-    const [search, setSearch]               = useState("")
-    const [filterStatus, setFilterStatus]   = useState("")
+    const [search, setSearch] = useState("")
+    const [filterStatus, setFilterStatus] = useState("")
     const [filterPayment, setFilterPayment] = useState("")
-    const [filterVoided, setFilterVoided]   = useState("")
-    const [fromDate, setFromDate]           = useState("")
-    const [toDate, setToDate]               = useState("")
+    const [filterVoided, setFilterVoided] = useState("")
+    const [fromDate, setFromDate] = useState("")
+    const [toDate, setToDate] = useState("")
 
-    const [selected, setSelected]           = useState<Transaction | null>(null)
-    const [showDetail, setShowDetail]       = useState(false)
+    const [selected, setSelected] = useState<Transaction | null>(null)
+    const [showDetail, setShowDetail] = useState(false)
 
-    const [showVoid, setShowVoid]           = useState(false)
-    const [voidTarget, setVoidTarget]       = useState<Transaction | null>(null)
-    const [voidPassword, setVoidPassword]   = useState("")
-    const [voidReason, setVoidReason]       = useState("")
-    const [voidError, setVoidError]         = useState("")
-    const [voidSaving, setVoidSaving]       = useState(false)
-    const [showVoidPw, setShowVoidPw]       = useState(false)
+    const [showVoid, setShowVoid] = useState(false)
+    const [voidTarget, setVoidTarget] = useState<Transaction | null>(null)
+    const [voidPassword, setVoidPassword] = useState("")
+    const [voidReason, setVoidReason] = useState("")
+    const [voidError, setVoidError] = useState("")
+    const [voidSaving, setVoidSaving] = useState(false)
+    const [showVoidPw, setShowVoidPw] = useState(false)
 
     const currentUser = JSON.parse(localStorage.getItem("user") || "{}")
-    const isAdmin     = currentUser?.role === "admin"
+    const isAdmin = currentUser?.role === "admin"
 
     const fetchTransactions = (page = 1) => {
         setLoading(true)
         const params: any = { page, per_page: 15 }
-        if (filterStatus)  params.status         = filterStatus
+        if (filterStatus) params.status = filterStatus
         if (filterPayment) params.payment_method = filterPayment
-        if (filterVoided)  params.is_voided      = filterVoided
-        if (fromDate)      params.start_date      = fromDate
-        if (toDate)        params.end_date        = toDate
+        if (filterVoided) params.is_voided = filterVoided
+        if (fromDate) params.start_date = fromDate
+        if (toDate) params.end_date = toDate
 
         const endpoint = isAdmin ? "/transactions" : "/transactions/cashier/history"
         if (!isAdmin && fromDate) params.date = fromDate
@@ -127,7 +127,7 @@ function RiwayatTransaksi() {
         setVoidSaving(true)
         try {
             await api.post(`/transactions/${voidTarget?.id}/void`, {
-                password:    voidPassword,
+                password: voidPassword,
                 void_reason: voidReason || null,
             })
             setShowVoid(false)
@@ -144,9 +144,9 @@ function RiwayatTransaksi() {
 
     const StatusBadge = ({ status }: { status: Transaction["status"] }) => {
         const map = {
-            paid:    "bg-green-50 text-green-700",
+            paid: "bg-green-50 text-green-700",
             partial: "bg-amber-50 text-amber-700",
-            debt:    "bg-red-50 text-red-600",
+            debt: "bg-red-50 text-red-600",
         }
         const label = {
             paid: "Lunas", partial: "Sebagian", debt: "Utang"
@@ -173,7 +173,7 @@ function RiwayatTransaksi() {
                 </p>
             </div>
 
-            {/* Filter */}
+            {/* ── Filter ── */}
             <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6">
                 <div className="flex flex-wrap gap-3">
                     <input
@@ -188,7 +188,7 @@ function RiwayatTransaksi() {
                     <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="border p-2 rounded-md text-sm text-gray-700 outline-none focus:border-blue-400 cursor-pointer"
+                        className="border p-2 rounded-md text-sm text-gray-700 outline-none focus:border-blue-400 cursor-pointer w-full sm:w-auto"
                     >
                         <option value="">Semua Status</option>
                         <option value="paid">Lunas</option>
@@ -200,7 +200,7 @@ function RiwayatTransaksi() {
                     <select
                         value={filterPayment}
                         onChange={(e) => setFilterPayment(e.target.value)}
-                        className="border p-2 rounded-md text-sm text-gray-700 outline-none focus:border-blue-400 cursor-pointer"
+                        className="border p-2 rounded-md text-sm text-gray-700 outline-none focus:border-blue-400 cursor-pointer w-full sm:w-auto"
                     >
                         <option value="">Semua Metode</option>
                         <option value="cash">Cash</option>
@@ -213,7 +213,7 @@ function RiwayatTransaksi() {
                         <select
                             value={filterVoided}
                             onChange={(e) => setFilterVoided(e.target.value)}
-                            className="border p-2 rounded-md text-sm text-gray-700 outline-none focus:border-blue-400 cursor-pointer"
+                            className="border p-2 rounded-md text-sm text-gray-700 outline-none focus:border-blue-400 cursor-pointer w-full sm:w-auto"
                         >
                             <option value="">Semua Transaksi</option>
                             <option value="false">Aktif</option>
@@ -224,7 +224,7 @@ function RiwayatTransaksi() {
 
                 {/* Filter tanggal */}
                 <div className="flex flex-wrap gap-3 mt-3">
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1 w-full sm:w-auto">
                         <label className="text-xs text-gray-500">
                             {isAdmin ? "Dari Tanggal" : "Tanggal (maks. 7 hari)"}
                         </label>
@@ -232,21 +232,21 @@ function RiwayatTransaksi() {
                             type="date"
                             value={fromDate}
                             onChange={(e) => setFromDate(e.target.value)}
-                            className="border p-2 rounded-md text-sm text-gray-700 outline-none focus:border-blue-400"
+                            className="border p-2 rounded-md text-sm text-gray-700 outline-none focus:border-blue-400 w-full sm:w-auto"
                         />
                     </div>
                     {isAdmin && (
-                        <div className="flex flex-col gap-1">
+                        <div className="flex flex-col gap-1 w-full sm:w-auto">
                             <label className="text-xs text-gray-500">Sampai Tanggal</label>
                             <input
                                 type="date"
                                 value={toDate}
                                 onChange={(e) => setToDate(e.target.value)}
-                                className="border p-2 rounded-md text-sm text-gray-700 outline-none focus:border-blue-400"
+                                className="border p-2 rounded-md text-sm text-gray-700 outline-none focus:border-blue-400 w-full sm:w-auto"
                             />
                         </div>
                     )}
-                    <div className="flex items-end">
+                    <div className="flex items-end w-full sm:w-auto">
                         <button
                             onClick={() => {
                                 setFromDate("")
@@ -256,7 +256,7 @@ function RiwayatTransaksi() {
                                 setFilterVoided("")
                                 setSearch("")
                             }}
-                            className="border border-gray-300 px-4 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-50 cursor-pointer transition"
+                            className="border border-gray-300 px-4 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-50 cursor-pointer transition w-full sm:w-auto"
                         >
                             Reset Filter
                         </button>
@@ -280,25 +280,23 @@ function RiwayatTransaksi() {
                                 }`}
                             >
                                 {/* Info utama */}
-                                <div className="flex items-center gap-4 flex-1 min-w-0">
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                                        trx.is_voided
-                                            ? "bg-gray-100"
-                                            : trx.status === "paid"
-                                                ? "bg-green-50"
-                                                : trx.status === "partial"
-                                                    ? "bg-amber-50"
-                                                    : "bg-red-50"
-                                    }`}>
-                                        <span className={`text-lg ${
-                                            trx.is_voided ? "text-gray-400" :
-                                            trx.status === "paid" ? "text-green-600" :
-                                            trx.status === "partial" ? "text-amber-500" : "text-red-500"
+                                <div className="flex items-start sm:items-center gap-4 flex-1 min-w-0">
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${trx.is_voided
+                                        ? "bg-gray-100"
+                                        : trx.status === "paid"
+                                            ? "bg-green-50"
+                                            : trx.status === "partial"
+                                                ? "bg-amber-50"
+                                                : "bg-red-50"
                                         }`}>
+                                        <span className={`text-lg ${trx.is_voided ? "text-gray-400" :
+                                            trx.status === "paid" ? "text-green-600" :
+                                                trx.status === "partial" ? "text-amber-500" : "text-red-500"
+                                            }`}>
                                             {trx.is_voided ? "✕" : trx.status === "paid" ? "✓" : "!"}
                                         </span>
                                     </div>
-                                    <div className="min-w-0">
+                                    <div className="min-w-0 flex-1">
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <p className="font-semibold text-gray-800 text-sm">
                                                 {trx.invoice_number}
@@ -348,9 +346,17 @@ function RiwayatTransaksi() {
                                             onClick={() => openVoid(trx)}
                                             className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md text-xs md:text-sm cursor-pointer transition"
                                         >
-                                            Void
+                                            Detail
                                         </button>
-                                    )}
+                                        {!trx.is_voided && (
+                                            <button
+                                                onClick={() => openVoid(trx)}
+                                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-sm cursor-pointer transition"
+                                            >
+                                                Void
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -359,7 +365,7 @@ function RiwayatTransaksi() {
 
                 {/* Pagination */}
                 {lastPage > 1 && (
-                    <div className="flex justify-center items-center gap-2 mt-6">
+                    <div className="flex flex-wrap justify-center items-center gap-2 mt-6">
                         <button
                             onClick={() => fetchTransactions(currentPage - 1)}
                             disabled={currentPage === 1}
@@ -381,7 +387,7 @@ function RiwayatTransaksi() {
                 )}
             </div>
 
-            {/* Modal Detail Transaksi */}
+            {/* ── Modal Detail Transaksi ── */}
             {showDetail && selected && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-xl w-[calc(100vw-2rem)] max-w-[480px] shadow-xl max-h-[90vh] overflow-y-auto">
@@ -442,7 +448,7 @@ function RiwayatTransaksi() {
 
                             {/* Item list */}
                             <div className="border rounded-lg overflow-hidden mb-4">
-                                <div className="bg-gray-50 px-4 py-2 text-xs text-gray-500 grid grid-cols-12 gap-2">
+                                <div className="bg-gray-50 px-3 sm:px-4 py-2 text-xs text-gray-500 grid grid-cols-12 gap-1 sm:gap-2">
                                     <span className="col-span-5">Produk</span>
                                     <span className="col-span-2 text-right">Harga</span>
                                     <span className="col-span-2 text-center">Qty</span>
@@ -450,7 +456,7 @@ function RiwayatTransaksi() {
                                 </div>
                                 <div className="divide-y divide-gray-100">
                                     {selected.transaction_details.map((item) => (
-                                        <div key={item.id} className="px-4 py-3 text-sm grid grid-cols-12 gap-2 items-center">
+                                        <div key={item.id} className="px-3 sm:px-4 py-3 text-sm grid grid-cols-12 gap-1 sm:gap-2 items-center">
                                             <span className="col-span-5 text-gray-800 font-medium truncate">{item.product_name}</span>
                                             <span className="col-span-2 text-right text-gray-500 text-xs">{fmt(item.price)}</span>
                                             <span className="col-span-2 text-center text-gray-600">{item.quantity}</span>
@@ -501,7 +507,7 @@ function RiwayatTransaksi() {
                 </div>
             )}
 
-            {/* Modal Void Transaksi */}
+            {/* ── Modal Void Transaksi ── */}
             {showVoid && voidTarget && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white p-5 md:p-6 rounded-xl w-[calc(100vw-2rem)] max-w-96 shadow-xl">

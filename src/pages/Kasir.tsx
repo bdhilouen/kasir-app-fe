@@ -41,14 +41,14 @@ interface ApiErrorResponse {
 }
 
 const emptyForm: UserForm = {
-    name:                  "",
-    email:                 "",
-    password:              "",
+    name: "",
+    email: "",
+    password: "",
     password_confirmation: "",
 }
 
 const emptyResetForm: ResetForm = {
-    password:              "",
+    password: "",
     password_confirmation: "",
 }
 
@@ -63,17 +63,17 @@ function AkunKasir() {
 
     const [search, setSearch] = useState("")
 
-    const [showForm, setShowForm]   = useState(false)
-    const [editId, setEditId]       = useState<number | null>(null)
-    const [form, setForm]           = useState<UserForm>(emptyForm)
+    const [showForm, setShowForm] = useState(false)
+    const [editId, setEditId] = useState<number | null>(null)
+    const [form, setForm] = useState<UserForm>(emptyForm)
     const [formError, setFormError] = useState("")
 
-    const [showReset, setShowReset]         = useState(false)
-    const [resetTarget, setResetTarget]     = useState<User | null>(null)
-    const [resetForm, setResetForm]         = useState<ResetForm>(emptyResetForm)
-    const [resetError, setResetError]       = useState("")
-    const [resetSaving, setResetSaving]     = useState(false)
-    const [showResetPw, setShowResetPw]     = useState(false)
+    const [showReset, setShowReset] = useState(false)
+    const [resetTarget, setResetTarget] = useState<User | null>(null)
+    const [resetForm, setResetForm] = useState<ResetForm>(emptyResetForm)
+    const [resetError, setResetError] = useState("")
+    const [resetSaving, setResetSaving] = useState(false)
+    const [showResetPw, setShowResetPw] = useState(false)
 
     const [showPassword, setShowPassword]   = useState(false)
     const [notice, setNotice]               = useState<Notice | null>(null)
@@ -130,9 +130,9 @@ function AkunKasir() {
 
     const openEditForm = (user: User) => {
         setForm({
-            name:                  user.name,
-            email:                 user.email,
-            password:              "",
+            name: user.name,
+            email: user.email,
+            password: "",
             password_confirmation: "",
         })
         setEditId(user.id)
@@ -174,7 +174,7 @@ function AkunKasir() {
             }
 
             if (!editId || form.password) {
-                payload.password              = form.password
+                payload.password = form.password
                 payload.password_confirmation = form.password_confirmation
             }
 
@@ -265,9 +265,9 @@ function AkunKasir() {
 
     const formatDate = (dateStr: string) => {
         return new Date(dateStr).toLocaleDateString("id-ID", {
-            day:   "numeric",
+            day: "numeric",
             month: "long",
-            year:  "numeric",
+            year: "numeric",
         })
     }
 
@@ -322,7 +322,7 @@ function AkunKasir() {
                 ) : displayed.length === 0 ? (
                     <p className="text-sm text-gray-400 text-center py-12">Tidak ada akun kasir ditemukan.</p>
                 ) : (
-                    <div className="divide-y divide-gray-100">
+                    <div className="space-y-3">
                         {displayed.map((user) => (
                             <div
                                 key={user.id}
@@ -339,9 +339,7 @@ function AkunKasir() {
                                         <div className="flex items-center gap-2">
                                             <p className="font-semibold text-gray-800">{user.name}</p>
                                             {user.id === currentUser.id && (
-                                                <span className="text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full">
-                                                    Kamu
-                                                </span>
+                                                <span className="ml-2 text-xs text-green-600">(Kamu)</span>
                                             )}
                                         </div>
                                         <p className="text-xs text-gray-400 truncate">
@@ -370,16 +368,17 @@ function AkunKasir() {
                                         disabled={deleting === user.id || user.id === currentUser.id}
                                         className="bg-red-500 hover:bg-red-600 disabled:bg-gray-200 disabled:cursor-not-allowed text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md text-xs md:text-sm cursor-pointer transition"
                                     >
-                                        {deleting === user.id ? "..." : "Hapus"}
+                                        Hapus
                                     </button>
                                 </div>
+
                             </div>
                         ))}
                     </div>
                 )}
             </div>
 
-            {/* Modal Tambah / Edit Akun */}
+            {/* Modal fix */}
             {showForm && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white p-5 md:p-6 rounded-xl w-[calc(100vw-2rem)] max-w-[420px] shadow-lg relative">
@@ -547,6 +546,7 @@ function AkunKasir() {
                     </div>
                 </div>
             )}
+
         </div>
     )
 }
