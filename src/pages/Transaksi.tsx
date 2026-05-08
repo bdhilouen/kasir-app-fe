@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../lib/axios";
+import NotificationBanner, { type Notice } from "../components/NotificationBanner";
 
 interface Category {
     id: number;
@@ -37,6 +38,7 @@ function Transaksi() {
     const [showConfirm, setShowConfirm] = useState(false);
     const [loading, setLoading] = useState(false);
     const [loadingProducts, setLoadingProducts] = useState(true);
+    const [notice, setNotice] = useState<Notice | null>(null);
 
     const fmt = (val: number) =>
         new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(val);
@@ -157,24 +159,30 @@ function Transaksi() {
             setAllProducts(updated.data.data.all);
             setCategories(updated.data.data.categories);
 
-            alert(`Transaksi ${invoice} berhasil!`);
+            setNotice({ type: "success", message: `Transaksi ${invoice} berhasil.` });
 
         } catch (err: any) {
             const message = err.response?.data?.message || "Gagal melakukan transaksi.";
-            alert(message);
+            setNotice({ type: "error", message });
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="h-full flex flex-col">
+        <div className="flex min-h-0 flex-col md:h-[calc(100vh-3rem)]">
             <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6">Kasir</h2>
 
-            <div className="flex flex-col-reverse md:grid md:grid-cols-12 gap-4 flex-1 min-h-0">
+            <NotificationBanner
+                notice={notice}
+                onClose={() => setNotice(null)}
+                className="mb-4"
+            />
+
+            <div className="flex flex-col-reverse md:grid md:grid-cols-12 gap-4 md:flex-1 md:min-h-0 md:overflow-hidden">
 
                 {/* Keranjang */}
-                <div className="md:col-span-8 bg-white p-4 md:p-5 flex flex-col rounded-xl shadow-sm border border-gray-100 min-h-[420px] md:min-h-0">
+                <div className="md:col-span-8 bg-white p-4 md:p-5 flex flex-col rounded-xl shadow-sm border border-gray-100 min-h-[420px] max-h-[70vh] md:max-h-none md:min-h-0">
                     <h3 className="font-semibold text-gray-700 mb-3">Keranjang</h3>
 
                     <div className="flex-1 overflow-y-auto min-h-0">
@@ -230,7 +238,7 @@ function Transaksi() {
                     </div>
 
                     {/* Total & Bayar */}
-                    <div className="mt-4 border-t pt-4">
+                    <div className="mt-4 border-t pt-4 bg-white">
                         <div className="flex justify-between items-center mb-3">
                             <span className="text-gray-500 text-sm">Total Item</span>
                             <span className="text-gray-700">{cart.reduce((s, c) => s + c.quantity, 0)} pcs</span>
@@ -250,7 +258,7 @@ function Transaksi() {
                 </div>
 
                 {/* Daftar Produk */}
-                <div className="md:col-span-4 bg-white p-4 flex flex-col rounded-xl shadow-sm border border-gray-100 min-h-[420px] md:min-h-0">
+                <div className="md:col-span-4 bg-white p-4 flex flex-col rounded-xl shadow-sm border border-gray-100 min-h-[320px] max-h-[45vh] md:max-h-none md:min-h-0">
                     <h3 className="font-semibold text-gray-700 mb-3">Produk</h3>
 
                     {/* Tab Kategori */}
@@ -307,8 +315,8 @@ function Transaksi() {
                                                 : "bg-gray-50 hover:bg-blue-50 border-gray-100 hover:border-blue-200 cursor-pointer"
                                         }`}
                                     >
-                                        <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                                            <span className="text-gray-400 text-xs">Img</span>
+                                        <div className="w-1 h-1  rounded-lg flex items-center justify-center flex-shrink-0">
+                                            
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="font-medium text-sm text-gray-800 truncate">{product.name}</p>
@@ -385,7 +393,17 @@ function Transaksi() {
 
                         {/* Jumlah bayar */}
                         <div className="mb-4">
-                            <label className="text-sm text-gray-600 mb-1 block">Jumlah Bayar</label>
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                                <label className="text-sm text-gray-600 block">Jumlah Bayar</label>
+                                <button
+                                    type="button"
+                                    onClick={() => setPaidAmount(total)}
+                                    disabled={total <= 0}
+                                    className="text-xs font-semibold text-blue-600 hover:text-blue-700 disabled:text-gray-300 disabled:cursor-not-allowed cursor-pointer transition"
+                                >
+                                    Uang Pas
+                                </button>
+                            </div>
                             <input
                                 type="number"
                                 value={paidAmount || ""}

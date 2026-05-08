@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react"
 import api from "../lib/axios"
 import { useAuth } from "../hooks/useAuth"
+import NotificationBanner, { type Notice } from "../components/NotificationBanner"
 
 interface User {
     id: number
     name: string
     email: string
-    role: "admin" | "cashier"
+    role: "cashier"
     created_at: string
 }
 
@@ -15,7 +16,6 @@ interface UserForm {
     email: string
     password: string
     password_confirmation: string
-    role: "admin" | "cashier"
 }
 
 interface ResetForm {
@@ -23,12 +23,28 @@ interface ResetForm {
     password_confirmation: string
 }
 
+interface UserPayload {
+    name: string
+    email: string
+    role?: "cashier"
+    password?: string
+    password_confirmation?: string
+}
+
+interface ApiErrorResponse {
+    response?: {
+        data?: {
+            message?: string
+            errors?: Record<string, string[]>
+        }
+    }
+}
+
 const emptyForm: UserForm = {
     name:                  "",
     email:                 "",
     password:              "",
     password_confirmation: "",
-    role:                  "cashier",
 }
 
 const emptyResetForm: ResetForm = {
@@ -39,20 +55,13 @@ const emptyResetForm: ResetForm = {
 function AkunKasir() {
 
     const { isAdmin } = useAuth()
-    
-        // Redirect kalau bukan admin
-        if (!isAdmin) {
-            window.location.href = "/transaksi"
-            return null
-        }
-        
+
     const [users, setUsers]       = useState<User[]>([])
     const [loading, setLoading]   = useState(true)
     const [saving, setSaving]     = useState(false)
     const [deleting, setDeleting] = useState<number | null>(null)
 
-    const [search, setSearch]           = useState("")
-    const [filterRole, setFilterRole]   = useState<"" | "admin" | "cashier">("")
+    const [search, setSearch] = useState("")
 
     const [showForm, setShowForm]   = useState(false)
     const [editId, setEditId]       = useState<number | null>(null)
@@ -67,6 +76,7 @@ function AkunKasir() {
     const [showResetPw, setShowResetPw]     = useState(false)
 
     const [showPassword, setShowPassword]   = useState(false)
+    const [notice, setNotice]               = useState<Notice | null>(null)
 
     // Ambil user yang sedang login biar tidak bisa hapus diri sendiri
     const currentUser = JSON.parse(localStorage.getItem("user") || "{}")
@@ -76,7 +86,6 @@ function AkunKasir() {
         api.get("/users", {
             params: {
                 per_page: 100,
-                ...(filterRole ? { role: filterRole } : {}),
             },
         })
             .then(res => setUsers(res.data.data.data))
@@ -85,20 +94,24 @@ function AkunKasir() {
     }
 
     useEffect(() => {
+        if (!isAdmin) {
+            window.location.href = "/transaksi"
+            return
+        }
+
         fetchUsers()
-    }, [filterRole])
+    }, [isAdmin])
 
     const displayed = users.filter(u =>
         u.name.toLowerCase().includes(search.toLowerCase()) ||
         u.email.toLowerCase().includes(search.toLowerCase())
     )
 
-    const adminCount   = users.filter(u => u.role === "admin").length
-    const cashierCount = users.filter(u => u.role === "cashier").length
+    const cashierCount = users.length
 
     // Form handlers
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setForm({ ...form, [e.target.name]: e.target.value as any })
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setForm({ ...form, [e.target.name]: e.target.value })
         setFormError("")
     }
 
@@ -121,7 +134,6 @@ function AkunKasir() {
             email:                 user.email,
             password:              "",
             password_confirmation: "",
-            role:                  user.role,
         })
         setEditId(user.id)
         setFormError("")
@@ -152,10 +164,13 @@ function AkunKasir() {
 
         setSaving(true)
         try {
-            const payload: any = {
+            const payload: UserPayload = {
                 name:  form.name,
                 email: form.email,
-                role:  form.role,
+            }
+
+            if (editId === null) {
+                payload.role = "cashier"
             }
 
             if (!editId || form.password) {
@@ -172,14 +187,19 @@ function AkunKasir() {
             setShowForm(false)
             setEditId(null)
             setForm(emptyForm)
+            setNotice({
+                type:    "success",
+                message: editId ? "Akun kasir berhasil diperbarui." : "Akun kasir berhasil ditambahkan.",
+            })
             fetchUsers()
-        } catch (err: any) {
-            const errors = err.response?.data?.errors
+        } catch (err: unknown) {
+            const apiError = err as ApiErrorResponse
+            const errors = apiError.response?.data?.errors
             if (errors) {
-                const first = Object.values(errors)[0] as string[]
+                const first = Object.values(errors)[0]
                 setFormError(first[0])
             } else {
-                setFormError(err.response?.data?.message || "Gagal menyimpan akun.")
+                setFormError(apiError.response?.data?.message || "Gagal menyimpan akun.")
             }
         } finally {
             setSaving(false)
@@ -188,17 +208,19 @@ function AkunKasir() {
 
     const handleDelete = async (user: User) => {
         if (user.id === currentUser.id) {
-            alert("Kamu tidak bisa menghapus akunmu sendiri.")
+            setNotice({ type: "warning", message: "Kamu tidak bisa menghapus akunmu sendiri." })
             return
         }
-        if (!confirm(`Yakin ingin menghapus akun "${user.name}"? Akun ini akan langsung logout.`)) return
+        if (!confirm(`Yakin ingin menghapus akun kasir "${user.name}"? Akun ini akan langsung logout.`)) return
 
         setDeleting(user.id)
         try {
             await api.delete(`/users/${user.id}`)
+            setNotice({ type: "success", message: `Akun kasir "${user.name}" berhasil dihapus.` })
             fetchUsers()
-        } catch (err: any) {
-            alert(err.response?.data?.message || "Gagal menghapus akun.")
+        } catch (err: unknown) {
+            const apiError = err as ApiErrorResponse
+            setNotice({ type: "error", message: apiError.response?.data?.message || "Gagal menghapus akun." })
         } finally {
             setDeleting(null)
         }
@@ -229,11 +251,13 @@ function AkunKasir() {
         setResetSaving(true)
         try {
             await api.patch(`/users/${resetTarget?.id}/reset-password`, resetForm)
+            const targetName = resetTarget?.name
             setShowReset(false)
             setResetTarget(null)
-            alert(`Password "${resetTarget?.name}" berhasil direset.`)
-        } catch (err: any) {
-            setResetError(err.response?.data?.message || "Gagal reset password.")
+            setNotice({ type: "success", message: `Password "${targetName}" berhasil direset.` })
+        } catch (err: unknown) {
+            const apiError = err as ApiErrorResponse
+            setResetError(apiError.response?.data?.message || "Gagal reset password.")
         } finally {
             setResetSaving(false)
         }
@@ -247,34 +271,26 @@ function AkunKasir() {
         })
     }
 
-    const RoleBadge = ({ role }: { role: "admin" | "cashier" }) => (
-        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-            role === "admin"
-                ? "bg-purple-50 text-purple-700"
-                : "bg-blue-50 text-blue-600"
-        }`}>
-            {role === "admin" ? "Admin" : "Kasir"}
-        </span>
-    )
-
     return (
         <div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
-                <h2 className="text-2xl md:text-3xl font-bold">Kelola Akun</h2>
+                <h2 className="text-2xl md:text-3xl font-bold">Kelola Akun Kasir</h2>
                 <button
                     onClick={openAddForm}
                     className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 active:scale-95 transition cursor-pointer"
                 >
-                    + Tambah Akun
+                    + Tambah Kasir
                 </button>
             </div>
 
+            <NotificationBanner
+                notice={notice}
+                onClose={() => setNotice(null)}
+                className="mb-6"
+            />
+
             {/* Summary cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                    <p className="text-xs text-gray-500 mb-1">Total Admin</p>
-                    <p className="text-xl md:text-2xl font-semibold text-gray-800">{adminCount} akun</p>
-                </div>
+            <div className="grid grid-cols-1 gap-4 mb-6">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                     <p className="text-xs text-gray-500 mb-1">Total Kasir</p>
                     <p className="text-xl md:text-2xl font-semibold text-gray-800">{cashierCount} akun</p>
@@ -290,36 +306,21 @@ function AkunKasir() {
                     onChange={(e) => setSearch(e.target.value)}
                     className="border p-2 rounded-md text-sm flex-1 min-w-full sm:min-w-[180px] outline-none focus:border-blue-400"
                 />
-                <div className="flex gap-2 flex-wrap">
-                    {(["", "admin", "cashier"] as const).map(role => (
-                        <button
-                            key={role}
-                            onClick={() => setFilterRole(role)}
-                            className={`px-4 py-2 rounded-md text-sm transition cursor-pointer border ${
-                                filterRole === role
-                                    ? "bg-gray-800 text-white border-gray-800"
-                                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                            }`}
-                        >
-                            {role === "" ? "Semua" : role === "admin" ? "Admin" : "Kasir"}
-                        </button>
-                    ))}
-                </div>
             </div>
 
             {/* List akun */}
             <div className="bg-white p-4 md:p-6 rounded-lg shadow-md">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
-                    <h3 className="text-lg md:text-xl font-bold">Daftar Akun</h3>
+                    <h3 className="text-lg md:text-xl font-bold">Daftar Kasir</h3>
                     <p className="bg-slate-100 px-4 py-2 rounded-lg text-sm">
                         Total: <span className="font-bold">{displayed.length}</span> akun
                     </p>
                 </div>
 
                 {loading ? (
-                    <p className="text-sm text-gray-400 text-center py-12">Memuat akun...</p>
+                    <p className="text-sm text-gray-400 text-center py-12">Memuat akun kasir...</p>
                 ) : displayed.length === 0 ? (
-                    <p className="text-sm text-gray-400 text-center py-12">Tidak ada akun ditemukan.</p>
+                    <p className="text-sm text-gray-400 text-center py-12">Tidak ada akun kasir ditemukan.</p>
                 ) : (
                     <div className="divide-y divide-gray-100">
                         {displayed.map((user) => (
@@ -329,12 +330,8 @@ function AkunKasir() {
                             >
                                 {/* Avatar + info */}
                                 <div className="flex items-center gap-4 flex-1 min-w-0">
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                                        user.role === "admin" ? "bg-purple-50" : "bg-blue-50"
-                                    }`}>
-                                        <span className={`font-bold text-sm ${
-                                            user.role === "admin" ? "text-purple-600" : "text-blue-600"
-                                        }`}>
+                                    <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-blue-50">
+                                        <span className="font-bold text-sm text-blue-600">
                                             {user.name.charAt(0).toUpperCase()}
                                         </span>
                                     </div>
@@ -351,11 +348,6 @@ function AkunKasir() {
                                             {user.email} · Dibuat {formatDate(user.created_at)}
                                         </p>
                                     </div>
-                                </div>
-
-                                {/* Badge role */}
-                                <div className="hidden md:block mx-6">
-                                    <RoleBadge role={user.role} />
                                 </div>
 
                                 {/* Actions */}
@@ -399,7 +391,7 @@ function AkunKasir() {
                         </button>
 
                         <h3 className="text-xl font-bold mb-4">
-                            {editId ? "Edit Akun" : "Tambah Akun"}
+                            {editId ? "Edit Kasir" : "Tambah Kasir"}
                         </h3>
 
                         <div className="grid gap-3">
@@ -424,18 +416,6 @@ function AkunKasir() {
                                     onChange={handleChange}
                                     className="w-full border p-2 rounded-md text-sm outline-none focus:border-blue-400"
                                 />
-                            </div>
-                            <div>
-                                <label className="text-xs text-gray-500 mb-1 block">Role</label>
-                                <select
-                                    name="role"
-                                    value={form.role}
-                                    onChange={handleChange}
-                                    className="w-full border p-2 rounded-md text-sm text-gray-700 outline-none focus:border-blue-400 cursor-pointer"
-                                >
-                                    <option value="cashier">Kasir</option>
-                                    <option value="admin">Admin</option>
-                                </select>
                             </div>
                             <div>
                                 <label className="text-xs text-gray-500 mb-1 block">

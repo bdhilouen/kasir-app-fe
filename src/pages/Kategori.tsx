@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 import api from "../lib/axios"
 import { useAuth } from "../hooks/useAuth"
+import NotificationBanner, { type Notice } from "../components/NotificationBanner"
 
 interface Category {
     id: number
@@ -45,6 +46,7 @@ function Kategori() {
     const [mergeSource, setMergeSource]     = useState<Category | null>(null)
     const [mergeTargetId, setMergeTargetId] = useState("")
     const [mergeSaving, setMergeSaving]     = useState(false)
+    const [notice, setNotice]               = useState<Notice | null>(null)
 
     const fetchCategories = () => {
         setLoading(true)
@@ -105,6 +107,10 @@ function Kategori() {
             setShowForm(false)
             setEditId(null)
             setForm(emptyForm)
+            setNotice({
+                type:    "success",
+                message: editId ? "Kategori berhasil diperbarui." : "Kategori berhasil ditambahkan.",
+            })
             fetchCategories()
         } catch (err: any) {
             const errors = err.response?.data?.errors
@@ -121,7 +127,10 @@ function Kategori() {
 
     const handleDelete = async (category: Category) => {
         if (category.products_count > 0) {
-            alert(`Kategori "${category.name}" masih memiliki ${category.products_count} produk. Hapus atau pindahkan produknya terlebih dahulu, atau gunakan fitur Gabung.`)
+            setNotice({
+                type:    "warning",
+                message: `Kategori "${category.name}" masih memiliki ${category.products_count} produk. Hapus atau pindahkan produknya terlebih dahulu, atau gunakan fitur Gabung.`,
+            })
             return
         }
         if (!confirm(`Yakin ingin menghapus kategori "${category.name}"?`)) return
@@ -129,9 +138,10 @@ function Kategori() {
         setDeleting(category.id)
         try {
             await api.delete(`/categories/${category.id}`)
+            setNotice({ type: "success", message: `Kategori "${category.name}" berhasil dihapus.` })
             fetchCategories()
         } catch (err: any) {
-            alert(err.response?.data?.message || "Gagal menghapus kategori.")
+            setNotice({ type: "error", message: err.response?.data?.message || "Gagal menghapus kategori." })
         } finally {
             setDeleting(null)
         }
@@ -154,9 +164,10 @@ function Kategori() {
             })
             setShowMerge(false)
             setMergeSource(null)
+            setNotice({ type: "success", message: "Kategori berhasil digabungkan." })
             fetchCategories()
         } catch (err: any) {
-            alert(err.response?.data?.message || "Gagal menggabungkan kategori.")
+            setNotice({ type: "error", message: err.response?.data?.message || "Gagal menggabungkan kategori." })
         } finally {
             setMergeSaving(false)
         }
@@ -173,6 +184,12 @@ function Kategori() {
                     + Tambah Kategori
                 </button>
             </div>
+
+            <NotificationBanner
+                notice={notice}
+                onClose={() => setNotice(null)}
+                className="mb-6"
+            />
 
             {/* Search */}
             <div className="flex flex-wrap gap-2 mb-6">

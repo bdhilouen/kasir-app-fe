@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 import api from "../lib/axios"
 import { useAuth } from "../hooks/useAuth"
+import NotificationBanner, { type Notice } from "../components/NotificationBanner"
 
 interface Category {
     id: number
@@ -70,6 +71,7 @@ function Stok() {
     const [showStockModal, setShowStockModal]   = useState(false)
     const [stockTarget, setStockTarget]         = useState<Product | null>(null)
     const [newStock, setNewStock]               = useState("")
+    const [notice, setNotice]                   = useState<Notice | null>(null)
 
     // Fetch produk & kategori
     const fetchProducts = () => {
@@ -162,6 +164,10 @@ function Stok() {
             setShowForm(false)
             setEditId(null)
             setForm(emptyForm)
+            setNotice({
+                type:    "success",
+                message: editId ? "Produk berhasil diperbarui." : "Produk berhasil ditambahkan.",
+            })
             fetchProducts()
 
         } catch (err: any) {
@@ -182,9 +188,10 @@ function Stok() {
         setDeleting(id)
         try {
             await api.delete(`/products/${id}`)
+            setNotice({ type: "success", message: "Produk berhasil dihapus." })
             fetchProducts()
         } catch (err: any) {
-            alert(err.response?.data?.message || "Gagal menghapus produk.")
+            setNotice({ type: "error", message: err.response?.data?.message || "Gagal menghapus produk." })
         } finally {
             setDeleting(null)
         }
@@ -204,10 +211,11 @@ function Stok() {
                 stock: Number(newStock),
             })
             setShowStockModal(false)
+            setNotice({ type: "success", message: `Stok "${stockTarget.name}" berhasil diperbarui.` })
             setStockTarget(null)
             fetchProducts()
         } catch (err: any) {
-            alert(err.response?.data?.message || "Gagal update stok.")
+            setNotice({ type: "error", message: err.response?.data?.message || "Gagal update stok." })
         }
     }
 
@@ -222,6 +230,12 @@ function Stok() {
                     + Tambah Produk
                 </button>
             </div>
+
+            <NotificationBanner
+                notice={notice}
+                onClose={() => setNotice(null)}
+                className="mb-6"
+            />
 
             {/* Filter bar */}
             <div className="flex flex-wrap gap-3 mb-6">
@@ -282,9 +296,7 @@ function Stok() {
                                     key={product.id}
                                     className="bg-white rounded-xl shadow-md p-4 hover:shadow-lg hover:-translate-y-1 transition duration-200 border border-gray-100"
                                 >
-                                    <div className="h-32 bg-gray-100 rounded-lg mb-4 flex items-center justify-center">
-                                        <span className="text-gray-400 text-sm">Gambar</span>
-                                    </div>
+                                    
 
                                     {product.category && (
                                         <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full mb-2 inline-block">
