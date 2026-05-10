@@ -124,10 +124,10 @@ function Register() {
                 {/* Sisi Kiri — Branding */}
                 <div className="w-full md:w-1/2 bg-slate-800 flex flex-col items-center justify-center p-6 sm:p-8 md:p-12 gap-5 md:gap-6">
                     <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white/10 rounded-2xl flex items-center justify-center">
-                        <span className="text-white text-2xl font-bold">T</span>
+                        <span className="text-white text-2xl font-bold">MK</span>
                     </div>
                     <div className="text-center">
-                        <h1 className="text-white text-xl sm:text-2xl font-bold">Toko Sejahtera</h1>
+                        <h1 className="text-white text-xl sm:text-2xl font-bold">MaKasir</h1>
                         <p className="text-slate-400 text-sm mt-2">Buat akun admin baru</p>
                     </div>
                     <div className="w-full border-t border-white/10 pt-5 md:pt-6 space-y-3">
