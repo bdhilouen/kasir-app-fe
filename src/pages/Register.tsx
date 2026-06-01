@@ -294,7 +294,7 @@ function Register() {
                                             setError("")
                                         }}
                                         onKeyDown={handleKeyDown}
-                                        placeholder="Masukkan 6 digit kode"
+                                        placeholder="------"
                                         maxLength={6}
                                         className="w-full border border-gray-200 rounded-lg px-3 sm:px-4 py-3 text-center text-xl sm:text-2xl font-bold font-mono tracking-[0.25em] sm:tracking-[0.5em] text-gray-800 bg-gray-50 focus:bg-white focus:border-blue-400 outline-none transition"
                                     />
