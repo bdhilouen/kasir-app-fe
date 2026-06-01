@@ -19,7 +19,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self' 'unsafe-inline' 'unsafe-eval';"
+          "value": "default-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://makasir.up.railway.app;"
         }
       ]
     }
