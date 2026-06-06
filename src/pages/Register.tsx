@@ -5,21 +5,21 @@ import api from "../lib/axios"
 type Step = "form" | "otp"
 
 function Register() {
-    const [step, setStep]       = useState<Step>("form")
+    const [step, setStep] = useState<Step>("form")
     const [loading, setLoading] = useState(false)
-    const [error, setError]     = useState("")
+    const [error, setError] = useState("")
 
     const [form, setForm] = useState({
-        name:                  "",
-        email:                 "",
-        password:              "",
+        name: "",
+        email: "",
+        password: "",
         password_confirmation: "",
     })
 
-    const [otp, setOtp]               = useState("")
+    const [otp, setOtp] = useState("")
     const [showPassword, setShowPassword] = useState(false)
-    const [showConfirm, setShowConfirm]   = useState(false)
-    const [countdown, setCountdown]       = useState(0)
+    const [showConfirm, setShowConfirm] = useState(false)
+    const [countdown, setCountdown] = useState(0)
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value })
@@ -96,9 +96,9 @@ function Register() {
         setLoading(true)
         try {
             await api.post("/register", {
-                name:                  form.name,
-                email:                 form.email,
-                password:              form.password,
+                name: form.name,
+                email: form.email,
+                password: form.password,
                 password_confirmation: form.password_confirmation,
                 otp,
             })
@@ -123,8 +123,14 @@ function Register() {
 
                 {/* Sisi Kiri — Branding */}
                 <div className="w-full md:w-1/2 bg-slate-800 flex flex-col items-center justify-center p-6 sm:p-8 md:p-12 gap-5 md:gap-6">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white/10 rounded-2xl flex items-center justify-center">
-                        <span className="text-white text-2xl font-bold">MK</span>
+                    <div className="flex items-center justify-center">
+                        <div className="w-16 h-16 bg-white rounded-2xl shadow-md p-2 flex items-center justify-center">
+                            <img
+                                src="/logo_makasir.png"
+                                alt="MaKasir Logo"
+                                className="w-full h-full object-contain"
+                            />
+                        </div>
                     </div>
                     <div className="text-center">
                         <h1 className="text-white text-xl sm:text-2xl font-bold">MaKasir</h1>
