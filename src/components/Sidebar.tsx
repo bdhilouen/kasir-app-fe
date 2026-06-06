@@ -8,7 +8,21 @@ function Sidebar() {
     return (
         <aside className="w-64 min-h-screen bg-gray-900 text-white p-5 flex flex-col justify-between">
 
-            <h1 className="text-2xl font-bold mb-8">MaKasir</h1>
+            <div className="flex items-center gap-3 mb-8">
+                {/* Badge Logo */}
+                <div className="w-10 h-10 bg-white rounded-xl shadow-md p-1.5 flex items-center justify-center flex-shrink-0">
+                    <img
+                        src="/logo_makasir.png"
+                        alt="MaKasir Logo"
+                        className="w-full h-full object-contain"
+                    />
+                </div>
+
+                {/* Nama App */}
+                <h1 className="text-2xl font-bold tracking-tight">
+                    MaKasir
+                </h1>
+            </div>
 
             <ul className="space-y-4">
                 <li className="hover:text-blue-400 p-1 rounded transition cursor-pointer duration-200"><NavLink to="/Transaksi" className={({ isActive }) =>

@@ -76,8 +76,14 @@ function Login() {
 
                 {/* Sisi Kiri — Branding */}
                 <div className="w-full md:w-1/2 bg-slate-800 flex flex-col items-center justify-center p-6 sm:p-8 md:p-12 gap-5 md:gap-6">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white/10 rounded-2xl flex items-center justify-center">
-                        <span className="text-white text-2xl font-bold">MK</span>
+                    <div className="flex items-center justify-center">
+                        <div className="w-16 h-16 bg-white rounded-2xl shadow-md p-2 flex items-center justify-center">
+                            <img
+                                src="/logo_makasir.png"
+                                alt="MaKasir Logo"
+                                className="w-full h-full object-contain"
+                            />
+                        </div>
                     </div>
                     <div className="text-center">
                         <h1 className="text-white text-xl sm:text-2xl font-bold">MaKasir</h1>
