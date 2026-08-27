@@ -19,7 +19,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://kasir-app.railway.internal;"
+          "value": "default-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://kasir-app-production-edad.up.railway.app;"
         }
       ]
     }
